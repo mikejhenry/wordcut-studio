@@ -4,13 +4,23 @@ An auto-caption video editor where all the heavy lifting (speech recognition, re
 
 ## Run it locally
 
-The speech model downloads from Hugging Face on first use, so the page must be served over http (not opened as a file):
+The speech model downloads from Hugging Face on first use, so the page must be served over http (not opened as a file). From the folder that contains `index.html` (the repo root):
+
+**macOS / Linux**
 
 ```bash
-cd wordcut
 python3 -m http.server 8080
-# open http://localhost:8080 in Chrome, Edge, or Safari 18+
 ```
+
+**Windows (PowerShell or Command Prompt)**
+
+```powershell
+py -m http.server 8080
+```
+
+On Windows, `python3` usually opens a Microsoft Store shortcut instead of Python, so use `py`. If Python isn't installed but Node.js is, `npx http-server -p 8080` works too.
+
+Then open http://localhost:8080 in Chrome, Edge, or Safari 18+. Press Ctrl+C in the terminal to stop the server.
 
 Use Chrome or Edge for WebGPU acceleration. Without WebGPU it falls back to the CPU (slower, still works).
 
