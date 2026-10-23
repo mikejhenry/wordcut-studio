@@ -18,9 +18,9 @@ python3 -m http.server 8080
 py -m http.server 8080
 ```
 
-On Windows, `python3` usually opens a Microsoft Store shortcut instead of Python, so use `py`. If Python isn't installed but Node.js is, `npx http-server -p 8080` works too.
+On Windows, `python3` usually opens a Microsoft Store shortcut instead of Python, so use `py`. If Python isn't installed but Node.js is, `npx http-server -p 8080 -c-1` works too (`-c-1` turns off its one-hour cache, so you always see the latest files).
 
-Then open http://localhost:8080 in Chrome, Edge, or Safari 18+. Press Ctrl+C in the terminal to stop the server.
+Then open http://localhost:8080 in Chrome, Edge, or Safari 18+. Press Ctrl+C in the terminal to stop the server. After pulling new changes, reload with Ctrl+Shift+R (Cmd+Shift+R on a Mac) so the browser doesn't show a cached copy.
 
 Use Chrome or Edge for WebGPU acceleration. Without WebGPU it falls back to the CPU (slower, still works).
 
@@ -63,6 +63,12 @@ All in `index.html` for now, organized as modules that map 1:1 onto the native r
 5. **Transcriber** — Whisper via transformers.js in a Web Worker, WebGPU with CPU fallback, word-level timestamps (falls back to estimated word timing if a model can't give them).
 6. **UI** — pages, viewer, timeline, inspector.
 7. **Deliver** — canvas + MediaRecorder. Real-time only; this is the main prototype limitation.
+
+## What the app stores on your device
+
+- **Speech models.** Whisper models (about 40, 80 or 250 MB) are saved in the browser's Cache Storage the first time you generate captions, so they don't download again. The Media page shows how much room they take, and **Delete saved models** removes them. The browser can also clear them when the device is low on space.
+- **Preferences.** Caption style and export settings are kept in `localStorage` (a few KB).
+- **Nothing else.** Imported media stays in memory only, as links to your own files. The app lets go of them when you load the demo, open another project or close the tab. Only the latest rendered video is kept in memory; a new render frees the previous one.
 
 ## Known limits of the web prototype
 
