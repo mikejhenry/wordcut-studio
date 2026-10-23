@@ -346,6 +346,10 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
           <div class="progress" aria-hidden="true"><div id="asrBar"></div></div>
           <div class="status" id="asrStatus" role="status"></div>
           <p class="note">The model downloads once, then runs entirely in this browser. Your footage never leaves the device.</p>
+          <div class="row" id="modelStore">
+            <span class="muted" id="modelUse" style="font-size:12.5px">Saved speech models: checking…</span>
+            <button class="btn small" id="clearModelsBtn" title="Free the disk space the downloaded speech models use. They download again the next time you generate captions.">Delete saved models</button>
+          </div>
         </div>
       </div>
 
@@ -1037,10 +1041,23 @@ function demoWords() {
   });
 }
 // Start an empty project. Keeps already-loaded files around in `keep` so an opened project can relink them.
-function resetProject() {
+// Stop a hidden player and let the browser free its decoder and buffers.
+function dropPlayer(p) {
+  p.el.pause(); p.el.removeAttribute('src'); p.el.load(); p.el.remove();
+  if (p.gain) p.gain.disconnect();
+}
+// Let go of an imported file's in-memory link and decoded sound once nothing uses it.
+function releaseUrl(url) {
+  if (!url) return;
+  AUDIO48.delete(url);
+  URL.revokeObjectURL(url);
+}
+// keep: object URLs to hold on to (files a project being opened will reuse).
+function resetProject(keep) {
   pause();
-  players.forEach(p => { p.el.pause(); p.el.remove(); });
+  players.forEach(dropPlayer);
   players.clear();
+  S.pool.forEach(m => { if (m.url && !(keep && keep.has(m.url))) releaseUrl(m.url); });
   S.pool = []; S.poolSel = null; S.captions = []; S.clips = []; S.markers = [];
   S.mark = { in: null, out: null }; S.sel = null; S.selClips = []; S.selGap = null;
   S.tracks = { 1: { mute: false, hide: false }, 2: { mute: false, hide: false } };
@@ -1048,8 +1065,8 @@ function resetProject() {
   clock.t = 0;
   resetHistory();
 }
-function loadDemo() {
-  resetProject();
+function loadDemo(keep) {
+  resetProject(keep);
   const words = demoWords();
   const med = { id: 'demo', name: 'Demo clip', kind: 'demo', duration: words[words.length - 1].e + 1.2, w: 1080, h: 1920 };
   S.pool = [med]; S.poolSel = med.id;
@@ -2348,7 +2365,7 @@ async function importFiles(files) {
     let med = S.pool.find(m => !m.url && m.kind !== 'demo' && m.name === file.name);
     if (med) {
       Object.assign(med, { file, url: info.url, kind: info.kind, w: info.w, h: info.h });
-      players.forEach((p, key) => { if (key.startsWith(med.id + ':')) { p.el.remove(); players.delete(key); } });
+      players.forEach((p, key) => { if (key.startsWith(med.id + ':')) { dropPlayer(p); players.delete(key); } });
       relinked++;
     } else {
       med = { id: uid(), name: file.name, kind: info.kind, duration: info.duration, w: info.w, h: info.h, file, url: info.url };
@@ -2381,6 +2398,7 @@ env.allowLocalModels = false;
 let asr = null, key = '';
 async function load(model, device, progress) {
   if (asr && key === model + device) return asr;
+  if (asr) { try { await asr.dispose(); } catch (e) {} asr = null; key = ''; }
   const opts = { device, progress_callback: progress };
   opts.dtype = device === 'webgpu' ? { encoder_model: 'fp32', decoder_model_merged: 'q4' } : 'q8';
   asr = await pipeline('automatic-speech-recognition', model, opts);
@@ -2490,13 +2508,45 @@ async function transcribe() {
     setStatus('#asrStatus', /decode/i.test(String(err)) ? "Couldn't read audio from this file. Try exporting it as MP4 with AAC audio." : downloadHint(String(err.message || err)), 'err');
   }
 }
-function finishAsr() { asrBusy = false; $('#transcribeBtn').disabled = false; }
+function finishAsr() { asrBusy = false; $('#transcribeBtn').disabled = false; showModelUse(); }
 function downloadHint(msg) {
   if (EMBEDDED || /fetch|network|load|import|CSP|Content Security|worker/i.test(msg))
     return "Couldn't download the speech model here. This preview frame blocks model downloads, so run the local build (see the README) to transcribe. The demo clip shows everything else.";
   return 'Transcription failed: ' + msg;
 }
 $('#transcribeBtn').addEventListener('click', transcribe);
+
+/* Saved speech models: transformers.js keeps downloaded models in the browser's Cache Storage
+   ('transformers-cache') so they only download once. Show how much room they take and let people delete them. */
+const MODEL_CACHE = 'transformers-cache';
+async function modelCacheBytes() {
+  if (!('caches' in window) || !(await caches.has(MODEL_CACHE))) return 0;
+  const c = await caches.open(MODEL_CACHE);
+  let n = 0;
+  for (const req of await c.keys()) {
+    const res = await c.match(req);
+    const len = res && +res.headers.get('content-length');
+    n += len || (res ? (await res.blob()).size : 0);
+  }
+  return n;
+}
+async function showModelUse() {
+  const el = $('#modelUse'), btn = $('#clearModelsBtn');
+  if (!('caches' in window)) { $('#modelStore').hidden = true; return; }
+  try {
+    const n = await modelCacheBytes();
+    el.textContent = n ? `Saved speech models: ${(n / 1048576).toFixed(0)} MB on this device.` : 'No speech models saved on this device.';
+    btn.disabled = !n;
+  } catch (e) { el.textContent = 'Saved speech models: unknown.'; }
+}
+$('#clearModelsBtn').addEventListener('click', async () => {
+  if (asrBusy) { toast('Wait for captions to finish first.'); return; }
+  if (worker) { worker.terminate(); worker = null; }   // also frees the model held in memory
+  try { await caches.delete(MODEL_CACHE); toast('Deleted the saved speech models.'); }
+  catch (e) { toast("Couldn't delete the saved models."); }
+  showModelUse();
+});
+showModelUse();
 
 /* ---------------- Captions page controls ---------------- */
 function renderPresets() {
@@ -2598,7 +2648,7 @@ async function startRender() {
   rec.ondataavailable = e => { if (e.data && e.data.size) parts.push(e.data); };
   EXP = { ctx, W, H, rec, parts, mime, cancelled: false, start: r0, end: r1 };
   rec.onstop = () => onRenderStop();
-  $('#result').hidden = true;
+  clearResult();
   $('#renderBtn').disabled = true; $('#cancelBtn').hidden = false;
   setStatus('#renderStatus', 'Starting…', '');
   seek(r0);
@@ -2706,9 +2756,16 @@ async function seekForFrame(t) {
   }
   if (waits.length) await Promise.all(waits);
 }
+// The last rendered video. Only one is kept: a new render, or leaving it behind, frees the old one.
+let resultUrl = null;
+function clearResult() {
+  const r = $('#result'); r.hidden = true; r.innerHTML = '';
+  if (resultUrl) { URL.revokeObjectURL(resultUrl); resultUrl = null; }
+}
 function showResult(blob, ext, W, H, note) {
   const name = `${(S.name || 'wordcut').replace(/[^\w\- ]+/g, '').trim() || 'wordcut'}-captioned.${ext}`;
-  const url = URL.createObjectURL(blob);
+  clearResult();
+  const url = resultUrl = URL.createObjectURL(blob);
   $('#renderBar').style.width = '100%';
   setStatus('#renderStatus', `Rendered ${(blob.size / 1048576).toFixed(1)} MB · ${W}×${H} ${ext.toUpperCase()}${note ? ' · ' + note : ''}`, 'ok');
   const r = $('#result');
@@ -2728,7 +2785,7 @@ async function fastRender(r0, r1) {
   const ac = hasLiveMedia() ? await pickAudioCodec(vc.box) : null;
   pause();
   FAST = { cancelled: false };
-  $('#result').hidden = true;
+  clearResult();
   $('#renderBtn').disabled = true; $('#cancelBtn').hidden = false;
   let venc = null, aenc = null;
   try {
@@ -2798,6 +2855,7 @@ function download(blob, name) {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = name;
   document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);   // the save has started by then
   if (EMBEDDED) toast('Saving files is blocked inside this preview. The local build saves normally.');
 }
 $('#srtBtn').addEventListener('click', () => S.captions.length ? download(new Blob([toSRT()], { type: 'text/plain' }), (S.name || 'captions') + '.srt') : toast('No captions to export yet.'));
@@ -2832,7 +2890,8 @@ $('#openFile').addEventListener('change', async e => {
       clips = clips.map(c => Object.assign({ track: 1, m: id, vol: 1 }, c));
       captions = captions.map(c => Object.assign({ m: id }, c));
     }
-    if (pool.some(m => m.kind === 'demo')) loadDemo(); else resetProject();
+    const keep = new Set(loaded.map(m => m.url));
+    if (pool.some(m => m.kind === 'demo')) loadDemo(keep); else resetProject(keep);
     const demo = S.pool.find(m => m.kind === 'demo');
     S.pool = pool.map(m => {
       if (m.kind === 'demo') return demo || m;
@@ -2840,6 +2899,7 @@ $('#openFile').addEventListener('change', async e => {
       return have ? Object.assign({}, m, { file: have.file, url: have.url, w: have.w, h: have.h }) : Object.assign({}, m);
     });
     S.pool.forEach(m => { const have = loaded.find(x => x.name === m.name); if (have && PEAKS.has(have.id)) PEAKS.set(m.id, PEAKS.get(have.id)); });
+    loaded.forEach(m => { if (!S.pool.some(x => x.url === m.url)) releaseUrl(m.url); });
     S.poolSel = S.pool[0] ? S.pool[0].id : null;
     S.name = d.name || 'Untitled project'; $('#projName').value = S.name;
     S.style = Object.assign({}, BASE_STYLE, d.style); S.out = Object.assign(S.out, d.out);

@@ -64,6 +64,12 @@ All in `index.html` for now, organized as modules that map 1:1 onto the native r
 6. **UI** — pages, viewer, timeline, inspector.
 7. **Deliver** — canvas + MediaRecorder. Real-time only; this is the main prototype limitation.
 
+## What the app stores on your device
+
+- **Speech models.** Whisper models (about 40, 80 or 250 MB) are saved in the browser's Cache Storage the first time you generate captions, so they don't download again. The Media page shows how much room they take, and **Delete saved models** removes them. The browser can also clear them when the device is low on space.
+- **Preferences.** Caption style and export settings are kept in `localStorage` (a few KB).
+- **Nothing else.** Imported media stays in memory only, as links to your own files. The app lets go of them when you load the demo, open another project or close the tab. Only the latest rendered video is kept in memory; a new render frees the previous one.
+
 ## Known limits of the web prototype
 
 - Fast export needs WebCodecs (Chrome, Edge, Safari 17+). In fast export, sped-up or slowed-down clips change pitch, while the preview keeps pitch.
