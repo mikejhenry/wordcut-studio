@@ -28,18 +28,31 @@ Use Chrome or Edge for WebGPU acceleration. Without WebGPU it falls back to the 
 
 | Page | What happens |
 |---|---|
-| **Media** | Import video/audio, pick a Whisper model, generate captions on-device |
-| **Edit** | Timeline + caption list. Fix text, nudge in/out points, split (S), merge, delete |
+| **Media** | Import several video/audio files into the media pool, add them to the timeline, generate captions per file on-device |
+| **Edit** | Two-track timeline (V1/A1, V2/A2) plus ST1 captions. Cut, trim, ripple, roll, slip, slide, markers, In/Out, undo. Remove pauses. Fix caption text and timing |
 | **Captions** | Style presets (Punch, Karaoke, Boxed, Clean, Terminal, Story, Comic, Neon) plus font, color, outline, glow, animation and layout controls |
 | **Deliver** | 9:16 / 4:5 / 1:1 / 16:9 / source, crop or blurred-fit, 720p/1080p, 24/30/60 fps. Render burned-in MP4/WebM, or export SRT/VTT |
 
-Keyboard: Space play/pause, S split at playhead, ←/→ step one frame, Delete removes the selected caption.
+### Edit page (modeled on DaVinci Resolve's Edit page)
+
+- **Media pool** with any number of files. Add the selected one at the playhead with Insert (F9), Overwrite (F10), Place on top (V2) or Append, or drag it onto V1 or V2. Opening a project marks missing files offline; importing a file with the same name relinks it.
+- **Two tracks.** Each track's picture and sound are linked (V1/A1, V2/A2), with a real waveform. V2 sits on top of V1 for B-roll. Each clip has volume, zoom, position and opacity, plus a one-click picture-in-picture preset. Click a track name to hide V or mute A. Drag a clip up or down to change tracks.
+- **ST1 caption track.** Captions are stored against the source footage of the file they came from, so they follow every cut, and SRT/VTT export uses the edited timing.
+- **Ripple on V1 moves every track**, so B-roll stays in sync with the talking head. Ripple on V2 only closes up V2.
+- **Tools:** Selection (A) moves clips and trims edges, rolling the edit point where two clips touch. Trim (T) ripple trims edges, slips a clip's content, or slides it with Alt+drag. Blade (B) cuts where you click.
+- **Cut and delete:** Ctrl+B cuts at the playhead. Delete ripple deletes the selected clips, a selected gap, or the In to Out range. Backspace deletes and leaves a gap. Ctrl+Shift+, / . swaps a clip with its neighbor.
+- **Snapping** (N) to clip edges, the playhead, markers and In/Out. Everything lands on the frame grid.
+- **Markers** (M), **In/Out** (I, O, Alt+X), **undo/redo** (Ctrl+Z, Ctrl+Shift+Z).
+- **Remove pauses:** cuts silent stretches out of every clip using the timed words.
+- **Deliver** can render just the In to Out range.
+
+Keyboard: Space play/pause, J/K/L shuttle (press again for 2×, 4×, 8×), ←/→ one frame (Shift: one second), ↑/↓ previous/next edit, Shift+↑/↓ previous/next marker, Ctrl+=/− or Ctrl+scroll to zoom, Shift+Z zoom to fit, S split caption, ? lists every shortcut.
 
 ## Architecture
 
 All in `index.html` for now, organized as modules that map 1:1 onto the native rewrite:
 
-1. **Project model** — `{ name, media, captions[{ s, e, words[{ t, s, e }] }], style, out }`. Saved as `.wordcut.json`. Media is referenced by name and relinked on open (like Resolve).
+1. **Project model** — `{ name, pool[{ id, name, kind, duration }], clips[{ track, m, start, in, out, vol, fx }], tracks, markers, captions[{ m, s, e, words[{ t, s, e }] }], style, out }`. `clips` is the edit decision list (track, media, timeline position, source in/out); captions belong to a media file, are in its source time, and are mapped through the clips. Older single-file projects open as one clip on V1. Saved as `.wordcut.json`. Media is referenced by name and relinked on open (like Resolve).
 2. **Caption engine** — groups timed words into captions (max words, pauses > 0.6 s, sentence ends, 3.2 s cap). Re-splitting works from the word list, so text edits survive style changes. SRT/VTT export.
 3. **Style presets** — plain data objects. Easy to ship more as paid packs.
 4. **Renderer** — one `drawFrame(ctx, W, H, t)` used for both preview and export, so what you see is what you get. Per-word states (upcoming / active / spoken) drive the animations.
