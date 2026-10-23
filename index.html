@@ -138,9 +138,21 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
 /* Timeline: ruler, V1 (picture), A1 (sound, linked to V1), ST1 (captions) */
 .timeline { border-top: 1px solid var(--line); background: var(--panel); }
 .tl-bar { display: flex; align-items: center; gap: 6px; padding-block: 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.tl-bar .seg button { padding: 4px 10px; }
+.tl-bar { gap: 2px; padding-block: 6px 7px; align-items: stretch; }
 .tl-bar .spacer { margin-left: auto; }
-.tl-bar .sep { width: 1px; height: 20px; background: var(--line); margin-inline: 2px; }
+.tl-bar .grp { display: flex; flex-direction: column; align-items: center; gap: 3px; padding-inline: 6px; border-right: 1px solid var(--line); }
+.tl-bar .grp:has(+ #ioLabel), .tl-bar .grp:last-child { border-right: 0; }
+.tl-bar .grp > b { font: 600 9.5px var(--ui); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+.tl-bar .grp > div { display: flex; gap: 2px; align-items: center; flex: 1; }
+.tb { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-width: 50px; padding: 4px 6px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: var(--fg); font-size: 11px; line-height: 1.1; }
+.tb svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tb:hover:not(:disabled) { background: var(--panel-2); }
+.tb[aria-pressed=true] { background: var(--panel-2); border-color: var(--line); color: var(--accent); }
+.tb:disabled { opacity: 0.4; cursor: default; }
+.tb:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tl-bar .spd { background: var(--panel-2); border: 1px solid var(--line); color: var(--fg); border-radius: 6px; padding: 6px 6px; font-size: 12px; }
+.tl-bar .spd:disabled { opacity: 0.45; }
+#ioLabel { align-self: center; padding-left: 6px; }
 .btn[aria-pressed=true] { border-color: var(--accent); color: var(--accent); }
 #ioLabel { font-size: 12px; }
 .tl-body { display: grid; grid-template-columns: 44px minmax(0, 1fr); }
@@ -232,6 +244,11 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
 
 #toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 9px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; max-width: min(460px, calc(100% - 32px)); z-index: 20; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
 
+@media (max-width: 1240px) {
+  .tl-bar .grp > b { display: none; }
+  .tb { min-width: 42px; padding: 3px 4px; font-size: 10.5px; }
+  .tl-bar .grp { padding-inline: 4px; }
+}
 @media (max-width: 860px) {
   .app { height: auto; min-height: 100%; grid-template-rows: auto auto auto auto; }
   .work { grid-template-columns: minmax(0, 1fr); }
@@ -241,6 +258,9 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
   .pages button { padding: 6px 12px; flex: 1; }
   .bar .btn { padding: 6px 9px; }
   .field { grid-template-columns: 100px minmax(0, 1fr); }
+  .tl-bar .grp > b, .tb span { display: none; }
+  .tb { min-width: 36px; padding: 7px; }
+  .tl-bar .grp { padding-inline: 3px; }
 }
 @media (max-width: 420px) {
   #projName { display: none; }
@@ -450,27 +470,41 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
   </main>
 
   <section class="timeline" id="timeline" aria-label="Timeline" hidden>
-    <div class="tl-bar">
-      <div class="seg" id="toolSeg" role="group" aria-label="Timeline tool">
-        <button data-tool="select" aria-pressed="true" title="Selection mode (A): move clips, trim edges, roll edit points">Select</button>
-        <button data-tool="trim" title="Trim edit mode (T): ripple trim edges, slip or Alt+drag to slide">Trim</button>
-        <button data-tool="blade" title="Blade edit mode (B): click a clip to cut it">Blade</button>
-      </div>
-      <button class="btn small" id="snapBtn" aria-pressed="true" title="Snapping (N)">Snap</button>
-      <span class="sep"></span>
-      <button class="btn small" id="undoBtn" title="Undo (Ctrl+Z)" disabled>Undo</button>
-      <button class="btn small" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button>
-      <span class="sep"></span>
-      <button class="btn small" id="bladeBtn" title="Cut the clip at the playhead (Ctrl+B)">Cut</button>
-      <button class="btn small" id="rippleBtn" title="Delete the selection and close the gap (Delete)">Ripple delete</button>
-      <button class="btn small" id="markerBtn" title="Add a marker at the playhead (M)">Marker</button>
-      <button class="btn small" id="splitBtn" title="Split the caption at the playhead (S)">Split caption</button>
+    <div class="tl-bar" role="toolbar" aria-label="Editing tools">
+      <div class="grp"><b>Tools</b><div id="toolSeg" role="group" aria-label="Timeline tool">
+        <button class="tb" data-tool="select" aria-pressed="true" title="Selection mode (A): move clips, trim edges, roll edit points"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l12 8-5 1.5L9.5 18z"/></svg><span>Select</span></button>
+        <button class="tb" data-tool="trim" aria-pressed="false" title="Trim edit mode (T): ripple trim edges, slip or Alt+drag to slide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v16M8 12h10M14 8l4 4-4 4"/></svg><span>Trim</span></button>
+        <button class="tb" data-tool="blade" aria-pressed="false" title="Blade edit mode (B): click a clip to cut it"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v18M6 8l12-4M6 16l12 4"/></svg><span>Blade</span></button>
+      </div></div>
+      <div class="grp"><b>History</b><div>
+        <button class="tb" id="undoBtn" disabled title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7H4V2"/><path d="M4 7a8 8 0 1 1 2 8"/></svg><span>Undo</span></button>
+        <button class="tb" id="redoBtn" disabled title="Redo (Ctrl+Shift+Z)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7h5V2"/><path d="M20 7a8 8 0 1 0-2 8"/></svg><span>Redo</span></button>
+      </div></div>
+      <div class="grp"><b>Edit</b><div>
+        <button class="tb" id="bladeBtn" title="Cut the clip at the playhead (Ctrl+B)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="M8.5 8.5L20 19M8.5 15.5L20 5"/></svg><span>Cut</span></button>
+        <button class="tb" id="rippleBtn" title="Delete the selection and close the gap (Delete)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h7M4 18h16"/><path d="M15 9l6 6M21 9l-6 6"/></svg><span>Ripple del</span></button>
+        <button class="tb" id="markerBtn" title="Add a marker at the playhead (M)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 3h10l-5 6z"/><path d="M4 21h16"/></svg><span>Marker</span></button>
+        <button class="tb" id="snapBtn" aria-pressed="true" title="Snapping (N)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a6 6 0 0 0 12 0V3"/><path d="M6 7h4M14 7h4"/></svg><span>Snap</span></button>
+      </div></div>
+      <div class="grp"><b>Transitions</b><div>
+        <button class="tb" id="fadeInBtn" aria-pressed="false" title="Fade the selected clip in from black (or the clip under the playhead). Click again to remove"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20L21 4v16z"/></svg><span>Fade in</span></button>
+        <button class="tb" id="fadeOutBtn" aria-pressed="false" title="Fade the selected clip out to black (or the clip under the playhead). Click again to remove"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4l18 16H3z"/></svg><span>Fade out</span></button>
+        <button class="tb" id="dissolveBtn" title="Cross dissolve at the cut nearest the playhead (Ctrl+T)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M3 20L21 4M3 4l18 16"/></svg><span>Dissolve</span></button>
+      </div></div>
+      <div class="grp"><b>Speed</b><div>
+        <select id="speedSel" class="spd" aria-label="Clip speed" title="Select a clip to change its speed" disabled></select>
+      </div></div>
+      <div class="grp"><b>Captions</b><div>
+        <button class="tb" id="splitBtn" title="Split the caption at the playhead (S)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 14h4M13 14h4M12 5v14"/></svg><span>Split</span></button>
+      </div></div>
       <span class="tc muted" id="ioLabel"></span>
       <span class="spacer"></span>
-      <button class="btn small" id="zoomOut" aria-label="Zoom out" title="Zoom out (Ctrl+−)">−</button>
-      <button class="btn small" id="zoomFit" title="Zoom to fit (Shift+Z)">Fit</button>
-      <button class="btn small" id="zoomIn" aria-label="Zoom in" title="Zoom in (Ctrl+=)">+</button>
-      <button class="btn small keysBtn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+      <div class="grp"><b>View</b><div>
+        <button class="tb" id="zoomOut" aria-label="Zoom out" title="Zoom out (Ctrl+−)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M16 16l5 5"/></svg><span>Out</span></button>
+        <button class="tb" id="zoomFit" title="Zoom to fit (Shift+Z)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Fit</span></button>
+        <button class="tb" id="zoomIn" aria-label="Zoom in" title="Zoom in (Ctrl+=)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M11 8v6M8 11h6M16 16l5 5"/></svg><span>In</span></button>
+        <button class="tb keysBtn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h1M10 10h1M14 10h1M18 10h0M7 14h10"/></svg><span>Keys</span></button>
+      </div></div>
     </div>
     <div class="tl-body">
       <div class="tl-heads">
@@ -1636,6 +1670,7 @@ function bindLive(input, apply) {
   input.addEventListener('change', () => { if (sliderBefore && snapshot() !== sliderBefore) pushUndo(sliderBefore); sliderBefore = null; });
 }
 function renderClipBox() {
+  syncToolbar();
   const box = $('#clipEditor');
   const sel = S.clips.filter(c => S.selClips.includes(c.id));
   let h = '<span class="label">Timeline</span>';
@@ -1791,6 +1826,33 @@ function refreshAll() {
   pruneSel();
   clock.t = clamp(clock.t, 0, tlEnd());
   sizePreview(); renderPool(); renderTimeline(); renderList(); renderEditor(); renderOutChips(); setPlayIcon(); syncUndoBtns();
+}
+
+/* Toolbar transitions and speed: they act on the selected clips, or on the clip under the playhead. */
+function toolbarTargets() {
+  const sel = S.clips.filter(c => S.selClips.includes(c.id));
+  if (sel.length) return sel;
+  const c = clipAt(clock.t, 1) || clipAt(clock.t, 2);
+  return c ? [c] : [];
+}
+function toggleFade(key) {
+  const cs = toolbarTargets();
+  if (!cs.length) { toast('Select a clip, or put the playhead over one, to add a fade.'); return; }
+  const on = cs.every(c => c[key]);
+  edit(() => cs.forEach(c => { if (on) delete c[key]; else c[key] = Math.min(1, clipLen(c) / 2); }));
+}
+function syncToolbar() {
+  const sel = S.clips.filter(c => S.selClips.includes(c.id));
+  $('#fadeInBtn').setAttribute('aria-pressed', String(sel.length > 0 && sel.every(c => c.fadeIn)));
+  $('#fadeOutBtn').setAttribute('aria-pressed', String(sel.length > 0 && sel.every(c => c.fadeOut)));
+  const box = $('#speedSel'), c = sel.length === 1 ? sel[0] : null, med = c && MEDIA(c.m);
+  const ok = c && !(med && med.kind === 'image');
+  const sp = ok ? Math.round(spd(c) * 100) : 100;
+  const speeds = [25, 50, 75, 100, 125, 150, 200, 300, 400];
+  if (!speeds.includes(sp)) speeds.push(sp), speeds.sort((a, b) => a - b);
+  box.innerHTML = speeds.map(v => `<option value="${v}"${v === sp ? ' selected' : ''}>${v}%</option>`).join('');
+  box.disabled = !ok;
+  box.title = ok ? 'Clip speed. Later clips move to follow the new length' : c ? 'Pictures have no speed' : 'Select one clip to change its speed';
 }
 
 /* ---------------- 6f. Timeline editing actions ---------------- */
@@ -2160,6 +2222,13 @@ $('#bladeBtn').addEventListener('click', bladeAtPlayhead);
 $('#rippleBtn').addEventListener('click', () => deleteAction(true));
 $('#markerBtn').addEventListener('click', addMarker);
 $('#splitBtn').addEventListener('click', splitAtPlayhead);
+$('#fadeInBtn').addEventListener('click', () => toggleFade('fadeIn'));
+$('#fadeOutBtn').addEventListener('click', () => toggleFade('fadeOut'));
+$('#dissolveBtn').addEventListener('click', () => addDissolve(1));
+$('#speedSel').addEventListener('change', e => {
+  const c = S.clips.find(x => S.selClips.includes(x.id));
+  if (c) edit(() => setSpeed(c, +e.target.value / 100));
+});
 $('#zoomIn').addEventListener('click', () => zoom(1.5));
 $('#zoomOut').addEventListener('click', () => zoom(1 / 1.5));
 $('#zoomFit').addEventListener('click', zoomFit);
