@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Wordcut Studio</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -128,24 +129,72 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
 
 .result video { width: 100%; border-radius: 6px; background: #000; max-height: 280px; }
 
-/* Timeline */
+/* Timeline: ruler, V1 (picture), A1 (sound, linked to V1), ST1 (captions) */
 .timeline { border-top: 1px solid var(--line); background: var(--panel); }
-.tl-bar { display: flex; align-items: center; gap: 8px; padding-block: 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.tl-bar .label { margin-right: auto; }
-.tl-scroll { overflow-x: auto; overflow-y: hidden; position: relative; height: 112px; }
+.tl-bar { display: flex; align-items: center; gap: 6px; padding-block: 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.tl-bar .seg button { padding: 4px 10px; }
+.tl-bar .spacer { margin-left: auto; }
+.tl-bar .sep { width: 1px; height: 20px; background: var(--line); margin-inline: 2px; }
+.btn[aria-pressed=true] { border-color: var(--accent); color: var(--accent); }
+#ioLabel { font-size: 12px; }
+.tl-body { display: grid; grid-template-columns: 40px minmax(0, 1fr); }
+.tl-heads { position: relative; border-right: 1px solid var(--line); height: 140px; }
+.tl-head { position: absolute; left: 0; right: 0; display: grid; place-items: center; font: 600 11px var(--mono); color: var(--muted); letter-spacing: 0.04em; }
+.tl-scroll { overflow-x: auto; overflow-y: hidden; position: relative; height: 140px; }
 .tl-inner { position: relative; height: 100%; min-width: 100%; }
-.ruler { position: absolute; left: 0; right: 0; top: 0; height: 24px; border-bottom: 1px solid var(--line); cursor: pointer; }
-.tick { position: absolute; top: 0; height: 100%; border-left: 1px solid var(--line); }
+.ruler { position: absolute; left: 0; right: 0; top: 0; height: 24px; border-bottom: 1px solid var(--line); cursor: ew-resize; touch-action: none; }
+.tick { position: absolute; top: 0; height: 100%; border-left: 1px solid var(--line); pointer-events: none; }
 .tick.major { border-left-color: var(--muted); }
 .tick span { position: absolute; top: 4px; left: 4px; font: 500 10px var(--mono); color: var(--muted); white-space: nowrap; }
-.track { position: absolute; left: 0; right: 0; top: 34px; height: 30px; cursor: pointer; }
-.track.audio { top: 72px; height: 28px; }
-.trk-name { position: sticky; left: 0; }
+.mk { position: absolute; top: 3px; width: 11px; height: 14px; margin-left: -5px; background: #4aa3ff; clip-path: polygon(0 0, 100% 0, 100% 60%, 50% 100%, 0 60%); cursor: pointer; z-index: 2; }
+.track { position: absolute; left: 0; right: 0; cursor: default; touch-action: none; }
+#vTrack { top: 30px; height: 38px; }
+#aTrack { top: 72px; height: 28px; }
+#capTrack { top: 106px; height: 28px; cursor: pointer; }
+.clipv, .clipa { position: absolute; top: 0; height: 100%; border-radius: 4px; overflow: hidden; cursor: grab; }
+.clipv { background: #2d4a78; border: 1px solid #4a6ea6; color: #dbe6f7; font-size: 11.5px; padding: 0 8px; display: flex; align-items: center; white-space: nowrap; }
+.clipv .cn { overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.clipa { background: #1f3a2b; border: 1px solid #36624a; }
+.clipa.nowave { background: #1f3a2b repeating-linear-gradient(90deg, #2f5a43 0 2px, transparent 2px 4px); }
+.clipa canvas { display: block; width: 100%; height: 100%; pointer-events: none; }
+.clipv.sel, .clipa.sel { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.clipv .h, .clipa .h { position: absolute; top: 0; bottom: 0; width: 8px; cursor: ew-resize; z-index: 1; }
+.clipv .h[data-edge=l], .clipa .h[data-edge=l] { left: 0; }
+.clipv .h[data-edge=r], .clipa .h[data-edge=r] { right: 0; }
+.clipv:hover .h, .clipa:hover .h { background: rgba(240,168,58,0.35); }
+.tl-scroll[data-tool=trim] .clipv, .tl-scroll[data-tool=trim] .clipa { cursor: col-resize; }
+.tl-scroll[data-tool=blade] .clipv, .tl-scroll[data-tool=blade] .clipa, .tl-scroll[data-tool=blade] .h { cursor: crosshair; }
+.tl-scroll[data-tool=blade] .h { background: none !important; }
+.gapsel { position: absolute; top: 0; height: 100%; border: 1px dashed var(--accent); background: rgba(240,168,58,0.12); border-radius: 4px; pointer-events: none; }
 .cap { position: absolute; top: 0; height: 100%; border-radius: 4px; background: var(--track); border: 1px solid #3b4f6e; color: #dbe6f7; font-size: 11.5px; padding: 0 6px; display: flex; align-items: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .cap.sel { background: var(--track-sel); border-color: var(--track-sel); color: var(--accent-ink); font-weight: 600; }
-.wave { position: absolute; inset: 0; border-radius: 4px; background: repeating-linear-gradient(90deg, #2f4a3c 0 2px, transparent 2px 4px); opacity: 0.8; border: 1px solid #355a46; }
+.range { position: absolute; top: 0; bottom: 0; background: rgba(255,255,255,0.07); border-inline: 1px solid rgba(255,255,255,0.55); pointer-events: none; z-index: 1; }
+.range.no-in { border-left: 0; }
+.range.no-out { border-right: 0; }
+.snapline, .bladeline { position: absolute; top: 24px; bottom: 0; width: 0; border-left: 1px solid #fff; pointer-events: none; z-index: 4; }
+.bladeline { border-left: 1px dashed var(--rec); }
+.tl-hint { position: absolute; top: 2px; font: 500 11px var(--mono); background: var(--fg); color: var(--bg); padding: 2px 6px; border-radius: 4px; pointer-events: none; z-index: 6; white-space: nowrap; }
 .playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--rec); pointer-events: none; z-index: 3; }
 .playhead::before { content: ""; position: absolute; top: 0; left: -5px; border: 6px solid transparent; border-top: 8px solid var(--rec); }
+
+/* Edit page bits */
+.kv { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 4px 10px; font-size: 13px; }
+.kv > span { color: var(--muted); }
+.kv > b { font-weight: 500; overflow-wrap: anywhere; }
+.tline.gone { opacity: 0.45; }
+.mlist { display: flex; flex-direction: column; gap: 6px; }
+.mrow { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+.mgo { border: 1px solid var(--line); background: var(--panel-2); border-radius: 6px; padding: 5px 8px; font-size: 12px; box-shadow: inset 3px 0 0 #4aa3ff; }
+.mrow input { padding: 5px 8px; }
+
+dialog { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; width: min(600px, calc(100% - 32px)); max-height: calc(100% - 48px); }
+dialog::backdrop { background: rgba(0,0,0,0.6); }
+dialog h3 { margin: 0 0 12px; font-size: 17px; }
+.keys { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 16px; font-size: 13px; align-items: baseline; margin: 0; }
+.keys dt { white-space: nowrap; }
+.keys dd { margin: 0; color: var(--muted); }
+.keys .kh { grid-column: 1 / -1; margin-top: 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); }
+kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; }
 
 /* Page bar */
 .pages { display: flex; justify-content: center; gap: 4px; border-top: 1px solid var(--line); background: var(--panel); padding-top: 6px; padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
@@ -195,6 +244,7 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
           <svg viewBox="0 0 16 16" id="playIcon"><path d="M4 2.5v11l9-5.5z"/></svg>
         </button>
         <span class="tc" id="tcCur">00:00:00:00</span>
+        <span class="chip" id="rateChip" hidden></span>
         <input type="range" id="scrub" min="0" max="1000" value="0" step="1" aria-label="Playhead position">
         <span class="tc muted" id="tcDur">00:00:00:00</span>
       </div>
@@ -250,13 +300,23 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
       <div class="page" data-p="edit" hidden>
         <div>
           <h2>Edit</h2>
-          <p class="lede">Fix words and timing. Select a caption on the timeline or in the list below.</p>
+          <p class="lede">Cut, trim and rearrange the footage on the timeline, then fix the words. Captions stay attached to the footage, so they follow every cut.</p>
+        </div>
+        <div class="group" id="clipEditor"></div>
+        <div class="group">
+          <span class="label">Remove pauses</span>
+          <div class="field"><span>Pauses longer than</span><div class="with-val"><input type="range" id="pauseMin" min="0.2" max="2" step="0.1" value="0.6"><output id="o-pauseMin" style="width:44px">0.6s</output></div></div>
+          <div class="field"><span>Keep around words</span><div class="with-val"><input type="range" id="pausePad" min="0" max="0.4" step="0.02" value="0.12"><output id="o-pausePad" style="width:44px">0.12s</output></div></div>
+          <div class="row"><button class="btn" id="cutPausesBtn">Cut pauses</button></div>
+          <p class="note">Uses the timed words to cut silent stretches out of every clip and close the gaps. Ctrl+Z undoes it.</p>
         </div>
         <div class="group" id="capEditor"></div>
+        <div class="group" id="markerBox"></div>
         <div class="group">
           <span class="label" id="tlistLabel">Captions</span>
           <div class="tlist" id="tlist"></div>
         </div>
+        <div class="row"><button class="btn small keysBtn">Keyboard shortcuts</button></div>
       </div>
 
       <!-- CAPTIONS -->
@@ -329,6 +389,7 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
             <select id="fps"><option value="30">30 fps</option><option value="60">60 fps</option><option value="24">24 fps</option></select>
           </div>
           <div class="chips" id="outChips"></div>
+          <label class="check" id="renderRangeRow"><input type="checkbox" id="renderRange" disabled> Only render the In to Out range</label>
         </div>
         <div class="group">
           <span class="label">Render</span>
@@ -339,7 +400,7 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
           <div class="progress" aria-hidden="true"><div id="renderBar"></div></div>
           <div class="status" id="renderStatus" role="status"></div>
           <div class="result" id="result" hidden></div>
-          <p class="note">This prototype records in real time, so a 60-second clip takes about 60 seconds. Keep the tab in view while it renders. The native apps will encode faster than real time.</p>
+          <p class="note">This prototype records in real time, so a 60-second clip takes about 60 seconds. Keep the tab in view while it renders. Each cut can show a brief hold while the browser seeks to the next shot. The native apps will encode faster than real time and cut cleanly.</p>
         </div>
         <div class="group">
           <span class="label">Caption files</span>
@@ -354,17 +415,45 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
 
   <section class="timeline" id="timeline" aria-label="Timeline" hidden>
     <div class="tl-bar">
-      <span class="label">Timeline</span>
-      <button class="btn small" id="splitBtn" title="Split caption at playhead (S)">Split at playhead</button>
-      <button class="btn small" id="zoomOut" aria-label="Zoom out">−</button>
-      <button class="btn small" id="zoomIn" aria-label="Zoom in">+</button>
+      <div class="seg" id="toolSeg" role="group" aria-label="Timeline tool">
+        <button data-tool="select" aria-pressed="true" title="Selection mode (A): move clips, trim edges, roll edit points">Select</button>
+        <button data-tool="trim" title="Trim edit mode (T): ripple trim edges, slip or Alt+drag to slide">Trim</button>
+        <button data-tool="blade" title="Blade edit mode (B): click a clip to cut it">Blade</button>
+      </div>
+      <button class="btn small" id="snapBtn" aria-pressed="true" title="Snapping (N)">Snap</button>
+      <span class="sep"></span>
+      <button class="btn small" id="undoBtn" title="Undo (Ctrl+Z)" disabled>Undo</button>
+      <button class="btn small" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled>Redo</button>
+      <span class="sep"></span>
+      <button class="btn small" id="bladeBtn" title="Cut the clip at the playhead (Ctrl+B)">Cut</button>
+      <button class="btn small" id="rippleBtn" title="Delete the selection and close the gap (Delete)">Ripple delete</button>
+      <button class="btn small" id="markerBtn" title="Add a marker at the playhead (M)">Marker</button>
+      <button class="btn small" id="splitBtn" title="Split the caption at the playhead (S)">Split caption</button>
+      <span class="tc muted" id="ioLabel"></span>
+      <span class="spacer"></span>
+      <button class="btn small" id="zoomOut" aria-label="Zoom out" title="Zoom out (Ctrl+−)">−</button>
+      <button class="btn small" id="zoomFit" title="Zoom to fit (Shift+Z)">Fit</button>
+      <button class="btn small" id="zoomIn" aria-label="Zoom in" title="Zoom in (Ctrl+=)">+</button>
+      <button class="btn small keysBtn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
     </div>
-    <div class="tl-scroll" id="tlScroll">
-      <div class="tl-inner" id="tlInner">
-        <div class="ruler" id="ruler"></div>
-        <div class="track" id="capTrack"></div>
-        <div class="track audio" id="audioTrack"></div>
-        <div class="playhead" id="playhead"></div>
+    <div class="tl-body">
+      <div class="tl-heads" aria-hidden="true">
+        <div class="tl-head" style="top:30px;height:38px">V1</div>
+        <div class="tl-head" style="top:72px;height:28px">A1</div>
+        <div class="tl-head" style="top:106px;height:28px">ST1</div>
+      </div>
+      <div class="tl-scroll" id="tlScroll" data-tool="select">
+        <div class="tl-inner" id="tlInner">
+          <div class="ruler" id="ruler"></div>
+          <div class="track" id="vTrack"></div>
+          <div class="track" id="aTrack"></div>
+          <div class="track" id="capTrack"></div>
+          <div class="range" id="rangeOv" hidden></div>
+          <div class="snapline" id="snapLine" hidden></div>
+          <div class="bladeline" id="bladeLine" hidden></div>
+          <div class="tl-hint" id="tlHint" hidden></div>
+          <div class="playhead" id="playhead"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -379,6 +468,38 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
 
 <video id="video" playsinline preload="auto"></video>
 <div id="toast" hidden></div>
+<dialog id="keysDlg" aria-labelledby="keysTitle">
+  <h3 id="keysTitle">Keyboard shortcuts</h3>
+  <dl class="keys">
+    <div class="kh">Playback</div>
+    <dt><kbd>Space</kbd></dt><dd>Play / pause</dd>
+    <dt><kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd></dt><dd>Play reverse, stop, play forward. Press J or L again to go faster.</dd>
+    <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Step one frame (hold Shift for one second)</dd>
+    <dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Previous / next edit point</dd>
+    <dt><kbd>Shift</kbd>+<kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Previous / next marker</dd>
+    <dt><kbd>Home</kbd> <kbd>End</kbd></dt><dd>Go to start / end</dd>
+    <div class="kh">Tools</div>
+    <dt><kbd>A</kbd></dt><dd>Selection mode: move clips, drag edges to trim, roll where two clips touch</dd>
+    <dt><kbd>T</kbd></dt><dd>Trim mode: drag edges to ripple trim, drag a clip to slip, Alt+drag to slide</dd>
+    <dt><kbd>B</kbd></dt><dd>Blade mode: click a clip to cut it</dd>
+    <dt><kbd>N</kbd></dt><dd>Snapping on / off</dd>
+    <div class="kh">Editing</div>
+    <dt><kbd>Ctrl</kbd>+<kbd>B</kbd></dt><dd>Cut the clip at the playhead</dd>
+    <dt><kbd>Delete</kbd></dt><dd>Ripple delete the selected clips, gap, or In to Out range</dd>
+    <dt><kbd>Backspace</kbd></dt><dd>Delete and leave a gap</dd>
+    <dt><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd> <kbd>.</kbd></dt><dd>Swap the selected clip with the one before / after</dd>
+    <dt><kbd>I</kbd> <kbd>O</kbd></dt><dd>Mark In / Out (Alt+I, Alt+O, Alt+X clear them)</dd>
+    <dt><kbd>M</kbd></dt><dd>Add a marker</dd>
+    <dt><kbd>S</kbd></dt><dd>Split the caption at the playhead</dd>
+    <dt><kbd>Ctrl</kbd>+<kbd>Z</kbd></dt><dd>Undo (Ctrl+Shift+Z or Ctrl+Y redoes)</dd>
+    <dt><kbd>Ctrl</kbd>+<kbd>A</kbd></dt><dd>Select all clips</dd>
+    <dt><kbd>Esc</kbd></dt><dd>Clear the selection</dd>
+    <div class="kh">View</div>
+    <dt><kbd>Ctrl</kbd>+<kbd>=</kbd> <kbd>−</kbd></dt><dd>Zoom the timeline (or Ctrl+scroll)</dd>
+    <dt><kbd>Shift</kbd>+<kbd>Z</kbd></dt><dd>Zoom to fit</dd>
+  </dl>
+  <form method="dialog" style="margin-top:16px;text-align:right"><button class="btn">Close</button></form>
+</dialog>
 
 <script>
 /* =========================================================================
@@ -439,7 +560,16 @@ const S = {
   captions: [],          // [{ id, s, e, words: [{ t, s, e }] }]
   style: presetStyle('punch'),
   out: { aspect: '9:16', fit: 'cover', quality: 1080, fps: 30 },
-  sel: null,
+  // Edit decision list: each clip shows source media [in, out) at timeline position `start`.
+  // Picture (V1) and sound (A1) are linked, so one list drives both tracks.
+  clips: [],             // [{ id, start, in, out }]
+  markers: [],           // [{ id, t, name }] in timeline time
+  mark: { in: null, out: null },   // In / Out range in timeline time
+  sel: null,             // selected caption id
+  selClips: [],          // selected clip ids
+  selGap: null,          // selected gap { a, b }
+  tool: 'select',        // 'select' | 'trim' | 'blade'
+  snap: true,
   page: 'media',
   pps: 70                // timeline pixels per second
 };
@@ -524,8 +654,148 @@ function stamp(t, sep) {
   const h = Math.floor(ms / 3600000), m = Math.floor(ms / 60000) % 60, s = Math.floor(ms / 1000) % 60, r = ms % 1000;
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}${sep}${String(r).padStart(3, '0')}`;
 }
-const toSRT = () => S.captions.map((c, i) => `${i + 1}\n${stamp(c.s, ',')} --> ${stamp(c.e, ',')}\n${capText(c)}\n`).join('\n');
-const toVTT = () => 'WEBVTT\n\n' + S.captions.map(c => `${stamp(c.s, '.')} --> ${stamp(c.e, '.')}\n${capText(c)}\n`).join('\n');
+// Caption files use timeline time: each caption is mapped through the clips, so cut
+// footage drops out and a caption that spans a cut becomes two cues.
+function captionCues() {
+  const cues = [];
+  for (const k of S.clips) for (const c of S.captions) {
+    const a = Math.max(c.s, k.in), b = Math.min(c.e, k.out);
+    if (b - a >= 0.05) cues.push({ s: k.start + a - k.in, e: k.start + b - k.in, text: capText(c), id: c.id });
+  }
+  cues.sort((x, y) => x.s - y.s);
+  const out = [];
+  for (const q of cues) {
+    const last = out[out.length - 1];
+    if (last && last.id === q.id && Math.abs(q.s - last.e) < 0.01) last.e = q.e; else out.push(q);
+  }
+  return out;
+}
+const toSRT = () => captionCues().map((c, i) => `${i + 1}\n${stamp(c.s, ',')} --> ${stamp(c.e, ',')}\n${c.text}\n`).join('\n');
+const toVTT = () => 'WEBVTT\n\n' + captionCues().map(c => `${stamp(c.s, '.')} --> ${stamp(c.e, '.')}\n${c.text}\n`).join('\n');
+
+/* ---------------- 2b. Clip engine (edit decision list) ----------------
+   Times: "source" time is a position in the imported media, "timeline" time is a
+   position in the edit. Captions are stored in source time, so they stay attached
+   to the words as clips are cut, trimmed and moved. */
+const EPS = 1e-4;
+const MIN_CLIP = 1 / TC_FPS;
+const qf = t => Math.round(t * TC_FPS) / TC_FPS;           // snap to the frame grid
+const mediaDur = () => (S.media && S.media.duration) || 0;
+const clipLen = c => c.out - c.in;
+const clipEnd = c => c.start + c.out - c.in;
+const sortClips = () => S.clips.sort((a, b) => a.start - b.start);
+const tlEnd = () => S.clips.reduce((m, c) => Math.max(m, clipEnd(c)), 0);
+const fullClip = () => mediaDur() ? [{ id: uid(), start: 0, in: 0, out: mediaDur() }] : [];
+function clipAt(t) {
+  for (const c of S.clips) if (t >= c.start - EPS && t < clipEnd(c) - EPS) return c;
+  return null;
+}
+function tlToSrc(t) { const c = clipAt(t); return c ? c.in + (t - c.start) : null; }
+function captionAtSrc(src) {
+  for (const c of S.captions) if (src >= c.s && src < c.e) return c;
+  return null;
+}
+// First timeline time where any part of a caption is visible, or null if it was cut out.
+function capTl(cap) {
+  let best = null;
+  for (const k of S.clips) {
+    const a = Math.max(cap.s, k.in), b = Math.min(cap.e, k.out);
+    if (b - a > 0.01) { const t = k.start + a - k.in; if (best == null || t < best) best = t; }
+  }
+  return best;
+}
+function gapAt(t) {
+  if (clipAt(t) || t >= tlEnd()) return null;
+  let a = 0, b = Infinity;
+  for (const c of S.clips) { const e = clipEnd(c); if (e <= t + EPS) a = Math.max(a, e); if (c.start > t) b = Math.min(b, c.start); }
+  return b !== Infinity && b - a > EPS ? { a, b } : null;
+}
+// Blade: cut the clip under timeline time t into two. Returns the new right-hand clip, or false.
+function splitClipAt(t, min) {
+  min = min || EPS * 10;
+  const c = clipAt(t);
+  if (!c || t - c.start < min || clipEnd(c) - t < min) return false;
+  const cut = c.in + (t - c.start);
+  const b = { id: uid(), start: t, in: cut, out: c.out };
+  c.out = cut;
+  S.clips.push(b); sortClips();
+  return b;
+}
+// Lift: remove everything between a and b, leaving a gap.
+function liftRange(a, b) {
+  splitClipAt(a); splitClipAt(b);
+  S.clips = S.clips.filter(c => !(c.start >= a - EPS && clipEnd(c) <= b + EPS));
+}
+// Ripple delete: remove everything between a and b and pull later clips and markers left.
+function rippleRange(a, b) {
+  liftRange(a, b);
+  const d = b - a;
+  S.clips.forEach(c => { if (c.start >= b - EPS) c.start -= d; });
+  S.markers = S.markers.filter(m => m.t < a || m.t >= b);
+  S.markers.forEach(m => { if (m.t >= b) m.t -= d; });
+  sortClips();
+}
+// Remove pauses: keep only the stretches around spoken words, back to back.
+function cutPauses(minGap, pad) {
+  const words = allWords().filter(w => w.e > w.s).sort((a, b) => a.s - b.s);
+  if (!words.length) return 0;
+  const speech = [];
+  for (const w of words) {
+    const last = speech[speech.length - 1];
+    if (last && w.s - last[1] < minGap) last[1] = Math.max(last[1], w.e); else speech.push([w.s, w.e]);
+  }
+  const padded = [];
+  for (const [a, b] of speech) {
+    const r = [Math.max(0, a - pad), Math.min(mediaDur(), b + pad)], last = padded[padded.length - 1];
+    if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]); else padded.push(r);
+  }
+  sortClips();
+  const out = [];
+  let removed = 0;
+  for (const c of S.clips) {
+    let pos = c.start - removed, kept = 0;
+    for (const [a, b] of padded) {
+      const s0 = Math.max(a, c.in), e0 = Math.min(b, c.out);
+      if (e0 - s0 >= MIN_CLIP) { out.push({ id: uid(), start: pos, in: s0, out: e0 }); pos += e0 - s0; kept += e0 - s0; }
+    }
+    removed += clipLen(c) - kept;
+  }
+  S.clips = out; S.selClips = [];
+  S.markers.forEach(m => { m.t = Math.min(m.t, tlEnd()); });
+  return removed;
+}
+
+/* Waveform peaks for the A1 track (max level per 10 ms of source audio). */
+const PEAK_RATE = 100;
+let PEAKS = null;
+function demoPeaks(words, dur) {
+  const n = Math.ceil(dur * PEAK_RATE), p = new Float32Array(n);
+  let seed = 7;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < n; i++) p[i] = 0.03 + rnd() * 0.04;
+  for (const w of words) {
+    for (let i = Math.floor(w.s * PEAK_RATE); i < Math.min(n, Math.ceil(w.e * PEAK_RATE)); i++) {
+      const k = clamp((i / PEAK_RATE - w.s) / (w.e - w.s), 0, 1);
+      p[i] = (0.4 + 0.55 * rnd()) * Math.sqrt(Math.sin(Math.PI * k));
+    }
+  }
+  return p;
+}
+async function computePeaks(file) {
+  try {
+    const a = await decodeAudio(file);
+    const per = 16000 / PEAK_RATE, n = Math.ceil(a.length / per), p = new Float32Array(n);
+    let mx = 0;
+    for (let i = 0; i < n; i++) {
+      let m = 0;
+      const e = Math.min(a.length, (i + 1) * per);
+      for (let j = i * per; j < e; j++) { const v = a[j] < 0 ? -a[j] : a[j]; if (v > m) m = v; }
+      p[i] = m; if (m > mx) mx = m;
+    }
+    if (mx > 0) for (let i = 0; i < n; i++) p[i] = Math.sqrt(p[i] / mx);
+    return p;
+  } catch (e) { return null; }
+}
 
 /* ---------------- Demo project ---------------- */
 const DEMO_TEXT = 'Wordcut listens to your video and writes the captions for you. Every word is timed, so it can pop, glow, or bounce right as it is spoken. Pick a style, tweak the font and colors, then export. All of it runs on your own device, with no upload and no server.';
@@ -544,7 +814,10 @@ function loadDemo() {
   const words = demoWords();
   S.media = { name: 'Demo clip', kind: 'demo', duration: words[words.length - 1].e + 1.2, w: 1080, h: 1920 };
   S.captions = buildCaptions(words, S.style);
-  S.sel = null; clock.t = 0;
+  S.clips = fullClip(); S.markers = []; S.mark = { in: null, out: null };
+  S.sel = null; S.selClips = []; S.selGap = null; clock.t = 0;
+  PEAKS = demoPeaks(words, S.media.duration);
+  resetHistory();
   refreshAll();
 }
 
@@ -605,9 +878,10 @@ function hexA(hex, a) {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 }
+// Caption on screen at timeline time t (looked up in source time under the playhead).
 function activeCaption(t) {
-  for (const c of S.captions) if (t >= c.s && t < c.e) return c;
-  return null;
+  const src = tlToSrc(t);
+  return src == null ? null : captionAtSrc(src);
 }
 function drawWord(ctx, it, x, cy, fs, k, t, st) {
   const w = it.w, active = t >= w.s && t < w.e, future = t < w.s;
@@ -683,17 +957,24 @@ function drawCaption(ctx, cap, W, H, t, st) {
 function drawFrame(ctx, W, H, t) {
   ctx.save();
   ctx.clearRect(0, 0, W, H);
-  drawBackground(ctx, W, H, t);
-  const cap = activeCaption(t);
-  if (cap) drawCaption(ctx, cap, W, H, t, S.style);
+  const src = tlToSrc(t);
+  if (src == null) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }   // gap in the edit
+  else {
+    drawBackground(ctx, W, H, src);
+    const cap = captionAtSrc(src);
+    if (cap) drawCaption(ctx, cap, W, H, src, S.style);
+  }
   ctx.restore();
 }
 
-/* ---------------- 6a. Playback clock ---------------- */
-const clock = { playing: false, t: 0, last: 0 };
+/* ---------------- 6a. Playback clock ----------------
+   The timeline has its own clock. The <video> element follows it: it gets cued to
+   whatever source frame sits under the playhead, so cuts, gaps and reordered clips
+   all play back correctly. While a clip plays forward, the clock is read back from
+   the video so picture and sound stay in sync. */
+const clock = { playing: false, t: 0, rate: 1 };
 const isReal = () => S.media && S.media.kind !== 'demo';
-const curTime = () => isReal() ? video.currentTime : clock.t;
-const duration = () => (S.media && S.media.duration) || 0;
+const curTime = () => clock.t;
 let AC = null, audioDest = null;
 function ensureAudio() {
   if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
@@ -704,29 +985,70 @@ function ensureAudio() {
     src.connect(AC.destination); src.connect(audioDest);
   } catch (e) { AC = null; audioDest = null; }
 }
-function isPlaying() { return isReal() ? !video.paused && !video.ended : clock.playing; }
-function play() {
-  if (!S.media) return;
-  if (curTime() >= duration() - 0.05) seek(0);
-  if (isReal()) { ensureAudio(); video.play().catch(() => toast('Playback was blocked. Tap play again.')); }
-  else { clock.playing = true; clock.last = performance.now(); }
+const isPlaying = () => clock.playing;
+function play(rate) {
+  if (!S.media || !S.clips.length) return;
+  rate = rate || 1;
+  if (rate > 0 && clock.t >= tlEnd() - 0.05) clock.t = 0;
+  if (rate < 0 && clock.t <= 0.01) return;
+  clock.playing = true; clock.rate = rate; vClip = null;
+  if (isReal()) ensureAudio();
   setPlayIcon();
 }
 function pause() {
-  if (isReal()) video.pause(); else clock.playing = false;
+  clock.playing = false; clock.rate = 1;
+  if (isReal() && !video.paused) video.pause();
   setPlayIcon();
 }
-function seek(t) {
-  t = clamp(t, 0, duration());
-  if (isReal()) video.currentTime = t; else clock.t = t;
+function seek(t) { clock.t = clamp(t, 0, tlEnd()); vClip = null; }
+// J / L: press again to go faster (1x, 2x, 4x, 8x), the other key reverses. K stops.
+function shuttle(dir) {
+  if (!S.media) return;
+  if (clock.playing && Math.sign(clock.rate) === dir) { clock.rate = dir * Math.min(8, Math.abs(clock.rate) * 2); vClip = null; }
+  else play(dir);
+  setPlayIcon();
 }
 function setPlayIcon() {
   $('#playIcon').innerHTML = isPlaying() ? '<path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/>' : '<path d="M4 2.5v11l9-5.5z"/>';
   $('#playBtn').setAttribute('aria-label', isPlaying() ? 'Pause' : 'Play');
+  const chip = $('#rateChip'), show = isPlaying() && clock.rate !== 1;
+  chip.hidden = !show;
+  if (show) chip.textContent = (clock.rate < 0 ? '◀ ' : '▶ ') + Math.abs(clock.rate) + '×';
 }
-video.addEventListener('ended', setPlayIcon);
-video.addEventListener('pause', setPlayIcon);
-video.addEventListener('play', setPlayIcon);
+
+let vClip = null;   // id of the clip the video element is currently playing
+function syncVideo(t) {
+  if (!isReal() || !video.currentSrc) return;
+  const c = clipAt(t);
+  if (!c) { vClip = null; if (!video.paused) video.pause(); return; }
+  const want = c.in + (t - c.start);
+  if (clock.playing && clock.rate > 0 && !drag) {
+    if (video.playbackRate !== clock.rate) video.playbackRate = clock.rate;
+    if (vClip !== c.id) { vClip = c.id; if (Math.abs(video.currentTime - want) > 0.05) video.currentTime = want; }
+    if (video.paused) video.play().catch(() => { pause(); toast('Playback was blocked. Press play again.'); });
+  } else {
+    vClip = null;
+    if (!video.paused) video.pause();
+    if (!video.seeking && Math.abs(video.currentTime - want) > 0.4 / TC_FPS) video.currentTime = want;
+  }
+}
+function advance(dt) {
+  const end = EXP ? EXP.end : tlEnd();
+  let t = clock.t;
+  const c = clipAt(t);
+  if (clock.rate > 0 && isReal() && c) {
+    if (vClip === c.id && !video.paused && !video.seeking && video.readyState >= 2) {
+      const vt = c.start + (video.currentTime - c.in);
+      t = vt >= t - 0.25 && vt <= t + 0.5 ? Math.max(t, vt) : t + dt * clock.rate;
+      if (video.currentTime >= c.out - 0.002 || video.ended) t = Math.max(t, clipEnd(c));
+    }
+    // Otherwise the video is still cueing this clip: hold the playhead so sound and picture stay together.
+  } else t += dt * clock.rate;
+  if (t >= end) { clock.t = end; if (EXP) finishRender(); else pause(); return; }
+  if (t <= 0) { clock.t = 0; pause(); return; }
+  clock.t = t;
+}
+video.addEventListener('error', () => { if (video.currentSrc) toast("Your browser can't play this file. Try an MP4 (H.264) or WebM video."); });
 
 /* ---------------- 6b. Preview canvas sizing ---------------- */
 const pv = $('#preview'), pctx = pv.getContext('2d');
@@ -742,23 +1064,23 @@ function sizePreview() {
 new ResizeObserver(sizePreview).observe($('#stage'));
 
 /* ---------------- 6c. Main loop ---------------- */
-let lastLive = null;
+let lastLive = null, lastNow = 0;
 function tick(now) {
-  if (!isReal() && clock.playing) {
-    clock.t += (now - clock.last) / 1000; clock.last = now;
-    if (clock.t >= duration()) { clock.t = duration(); clock.playing = false; setPlayIcon(); if (EXP) finishRender(); }
-  }
-  const t = curTime();
-  drawFrame(pctx, pv.width, pv.height, t);
+  const dt = lastNow ? Math.min(0.1, (now - lastNow) / 1000) : 0;
+  lastNow = now;
+  if (clock.playing) advance(dt);
+  const t = curTime(), vt = drag && drag.show != null ? drag.show : t;
+  syncVideo(vt);
+  drawFrame(pctx, pv.width, pv.height, vt);
   if (EXP) {
     drawFrame(EXP.ctx, EXP.W, EXP.H, t);
-    const p = duration() ? t / duration() : 0;
+    const span = Math.max(0.001, EXP.end - EXP.start), p = clamp((t - EXP.start) / span, 0, 1);
     $('#renderBar').style.width = (p * 100).toFixed(1) + '%';
-    $('#renderStatus').textContent = `Rendering ${tc(t)} of ${tc(duration())}`;
-    if (isReal() && video.ended) finishRender();
+    $('#renderStatus').textContent = `Rendering ${tc(t - EXP.start)} of ${tc(span)}`;
   }
-  $('#tcCur').textContent = tc(t);
-  if (!scrubbing) $('#scrub').value = duration() ? Math.round(t / duration() * 1000) : 0;
+  $('#tcCur').textContent = tc(vt);
+  const d = tlEnd();
+  if (!scrubbing) $('#scrub').value = d ? Math.round(t / d * 1000) : 0;
   $('#playhead').style.left = (t * S.pps) + 'px';
   if (isPlaying()) followPlayhead(t);
   const live = activeCaption(t);
@@ -774,14 +1096,53 @@ function followPlayhead(t) {
   if (x > sc.scrollLeft + sc.clientWidth - 40 || x < sc.scrollLeft) sc.scrollLeft = x - 40;
 }
 
-/* ---------------- 6d. Pages + UI rendering ---------------- */
+/* ---------------- 6d. Undo / redo ----------------
+   Every timeline or caption change goes through edit(), which snapshots the
+   project first. Drags snapshot on pointer down and commit on release. */
+const hist = { undo: [], redo: [] };
+const snapshot = () => JSON.stringify({ clips: S.clips, captions: S.captions, markers: S.markers });
+function pushUndo(before) {
+  hist.undo.push(before);
+  if (hist.undo.length > 300) hist.undo.shift();
+  hist.redo = [];
+  syncUndoBtns();
+}
+function edit(fn) {
+  const before = snapshot();
+  const r = fn();
+  if (snapshot() !== before) pushUndo(before);
+  refreshAll();
+  return r;
+}
+function restoreSnap(json) {
+  const d = JSON.parse(json);
+  S.clips = d.clips; S.captions = d.captions; S.markers = d.markers;
+  refreshAll();
+}
+function undo() {
+  if (!hist.undo.length) { toast('Nothing to undo.'); return; }
+  hist.redo.push(snapshot()); restoreSnap(hist.undo.pop());
+}
+function redo() {
+  if (!hist.redo.length) { toast('Nothing to redo.'); return; }
+  hist.undo.push(snapshot()); restoreSnap(hist.redo.pop());
+}
+function resetHistory() { hist.undo = []; hist.redo = []; syncUndoBtns(); }
+function syncUndoBtns() { $('#undoBtn').disabled = !hist.undo.length; $('#redoBtn').disabled = !hist.redo.length; }
+function pruneSel() {
+  S.selClips = S.selClips.filter(id => S.clips.some(c => c.id === id));
+  if (S.sel && !S.captions.some(c => c.id === S.sel)) S.sel = null;
+  if (S.selGap && !gapAt((S.selGap.a + S.selGap.b) / 2)) S.selGap = null;
+}
+
+/* ---------------- 6e. Pages + UI rendering ---------------- */
 function showPage(p) {
   S.page = p;
   $$('.page').forEach(el => el.hidden = el.dataset.p !== p);
   $$('.pages button').forEach(b => b.dataset.page === p ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
   $('#timeline').hidden = !(p === 'edit' || p === 'captions');
   if (p === 'captions') syncStyleControls();
-  requestAnimationFrame(sizePreview);
+  requestAnimationFrame(() => { sizePreview(); renderTimeline(); });
 }
 $$('.pages button').forEach(b => b.addEventListener('click', () => showPage(b.dataset.page)));
 
@@ -790,35 +1151,103 @@ function renderPool() {
   if (!m) { pool.innerHTML = '<div class="empty">No media yet.</div>'; return; }
   const res = m.kind === 'video' && m.w ? `${m.w}×${m.h}` : m.kind === 'audio' ? 'Audio only' : 'Generated · 1080×1920';
   pool.innerHTML = `<div class="clip"><div class="thumb">${m.kind === 'audio' ? 'AUDIO' : m.kind === 'demo' ? 'DEMO' : 'VIDEO'}</div>
-    <div style="min-width:0"><div class="name"></div><div class="meta">${tc(m.duration)} · ${res} · ${S.captions.length} captions</div></div></div>`;
+    <div style="min-width:0"><div class="name"></div><div class="meta">${tc(m.duration)} · ${res} · ${S.clips.length} clip${S.clips.length === 1 ? '' : 's'} on the timeline · ${S.captions.length} captions</div></div></div>`;
   pool.querySelector('.name').textContent = m.name;
   $('#stageLabel').textContent = m.kind === 'demo' ? 'Demo clip' : m.name;
-  $('#tcDur').textContent = tc(m.duration);
+}
+
+function drawWave(cv, c, pxW) {
+  const w = Math.max(1, Math.min(4096, Math.round(pxW))), h = 24;
+  cv.width = w; cv.height = h;
+  if (!PEAKS) return;
+  const g = cv.getContext('2d'), dur = clipLen(c);
+  g.fillStyle = '#7fd3a2';
+  for (let x = 0; x < w; x++) {
+    const a = c.in + x / w * dur, b = c.in + (x + 1) / w * dur;
+    const i0 = Math.floor(a * PEAK_RATE), i1 = Math.max(i0 + 1, Math.ceil(b * PEAK_RATE));
+    let m = 0;
+    for (let i = i0; i < i1 && i < PEAKS.length; i++) if (PEAKS[i] > m) m = PEAKS[i];
+    const bh = Math.max(1, m * (h - 2));
+    g.fillRect(x, (h - bh) / 2, 1, bh);
+  }
 }
 
 function renderTimeline() {
-  const d = duration(), inner = $('#tlInner');
-  inner.style.width = Math.max(d * S.pps + 80, $('#tlScroll').clientWidth) + 'px';
-  const step = S.pps >= 60 ? 1 : S.pps >= 25 ? 2 : 5, major = step * 5;
+  const end = tlEnd(), sc = $('#tlScroll'), inner = $('#tlInner'), pps = S.pps;
+  const span = Math.max(end + Math.max(4, end * 0.25), mediaDur());
+  inner.style.width = Math.max(span * pps, sc.clientWidth) + 'px';
+  const step = pps >= 60 ? 1 : pps >= 25 ? 2 : pps >= 10 ? 5 : 10, major = step * 5;
   let html = '';
-  for (let s = 0; s <= d + 0.001; s += step) {
+  for (let s = 0; s <= span + 0.001; s += step) {
     const isMajor = Math.round(s) % major === 0;
-    html += `<div class="tick${isMajor ? ' major' : ''}" style="left:${s * S.pps}px">${isMajor ? `<span>${tc(s).slice(3, 8)}</span>` : ''}</div>`;
+    html += `<div class="tick${isMajor ? ' major' : ''}" style="left:${s * pps}px">${isMajor ? `<span>${tc(s).slice(3, 8)}</span>` : ''}</div>`;
   }
+  for (const m of S.markers) html += `<div class="mk" data-mid="${m.id}" style="left:${m.t * pps}px"></div>`;
   $('#ruler').innerHTML = html;
+  $$('#ruler .mk').forEach(el => { const m = S.markers.find(x => x.id === el.dataset.mid); el.title = `${m.name} · ${tc(m.t)}`; });
+
+  // V1 and A1: the same clips, linked, so picture and sound always cut together.
+  const vt = $('#vTrack'), at = $('#aTrack'), name = S.media ? S.media.name : '';
+  vt.innerHTML = ''; at.innerHTML = '';
+  for (const c of S.clips) {
+    const w = Math.max(3, clipLen(c) * pps - 1), sel = S.selClips.includes(c.id);
+    const ve = document.createElement('div');
+    ve.className = 'clipv' + (sel ? ' sel' : '');
+    ve.dataset.id = c.id;
+    ve.style.left = (c.start * pps) + 'px'; ve.style.width = w + 'px';
+    ve.title = `${name}\nSource ${tc(c.in)} – ${tc(c.out)}`;
+    const ae = ve.cloneNode(false);
+    ve.innerHTML = '<i class="h" data-edge="l"></i><span class="cn"></span><i class="h" data-edge="r"></i>';
+    ve.querySelector('.cn').textContent = name;
+    vt.appendChild(ve);
+    ae.className = 'clipa' + (sel ? ' sel' : '') + (PEAKS ? '' : ' nowave');
+    ae.innerHTML = '<canvas></canvas><i class="h" data-edge="l"></i><i class="h" data-edge="r"></i>';
+    drawWave(ae.querySelector('canvas'), c, w);
+    at.appendChild(ae);
+  }
+  if (S.selGap) {
+    const g = document.createElement('div');
+    g.className = 'gapsel';
+    g.style.left = (S.selGap.a * pps) + 'px'; g.style.width = ((S.selGap.b - S.selGap.a) * pps) + 'px';
+    vt.appendChild(g);
+  }
+
+  // ST1: captions live in source time and are mapped through the clips, so they follow every cut.
   const track = $('#capTrack');
   track.innerHTML = '';
   for (const c of S.captions) {
-    const el = document.createElement('div');
-    el.className = 'cap' + (c.id === S.sel ? ' sel' : '');
-    el.style.left = (c.s * S.pps) + 'px';
-    el.style.width = Math.max(4, (c.e - c.s) * S.pps - 2) + 'px';
-    el.textContent = capText(c);
-    el.dataset.id = c.id;
-    el.title = capText(c);
-    track.appendChild(el);
+    for (const k of S.clips) {
+      const a = Math.max(c.s, k.in), b = Math.min(c.e, k.out);
+      if (b - a < 0.01) continue;
+      const el = document.createElement('div');
+      el.className = 'cap' + (c.id === S.sel ? ' sel' : '');
+      el.style.left = ((k.start + a - k.in) * pps) + 'px';
+      el.style.width = Math.max(3, (b - a) * pps - 2) + 'px';
+      el.textContent = capText(c);
+      el.dataset.id = c.id;
+      el.title = capText(c);
+      track.appendChild(el);
+    }
   }
-  $('#audioTrack').innerHTML = d ? `<div class="wave" style="width:${d * S.pps}px"></div>` : '';
+  renderRange();
+  $('#tcDur').textContent = tc(end);
+}
+
+function renderRange() {
+  const ov = $('#rangeOv'), { in: i, out: o } = S.mark, has = i != null || o != null;
+  ov.hidden = !has;
+  let label = '';
+  if (has) {
+    const a = i ?? 0, b = o ?? tlEnd();
+    ov.style.left = (a * S.pps) + 'px';
+    ov.style.width = Math.max(1, (b - a) * S.pps) + 'px';
+    ov.classList.toggle('no-in', i == null); ov.classList.toggle('no-out', o == null);
+    label = `In ${i == null ? '—' : tc(i)} · Out ${o == null ? '—' : tc(o)} · ${tc(b - a)}`;
+  }
+  $('#ioLabel').textContent = label;
+  const rr = $('#renderRange');
+  rr.disabled = !has; if (!has) rr.checked = false;
+  $('#renderRangeRow').classList.toggle('muted', !has);
 }
 
 function renderList() {
@@ -827,21 +1256,74 @@ function renderList() {
   if (!S.captions.length) { list.innerHTML = '<div class="empty">No captions yet. Generate them on the Media page.</div>'; return; }
   list.innerHTML = '';
   for (const c of S.captions) {
+    const at = capTl(c);
     const b = document.createElement('button');
-    b.className = 'tline'; b.dataset.id = c.id;
+    b.className = 'tline' + (at == null ? ' gone' : ''); b.dataset.id = c.id;
     if (c.id === S.sel) b.setAttribute('aria-current', 'true');
-    b.innerHTML = `<span class="tc">${tc(c.s)}</span><span></span>`;
+    b.innerHTML = `<span class="tc">${at == null ? 'cut' : tc(at)}</span><span></span>`;
     b.lastChild.textContent = capText(c);
+    if (at == null) b.title = 'This caption is in footage you cut from the timeline.';
     b.addEventListener('click', () => select(c.id, true));
     list.appendChild(b);
   }
 }
 
-function renderEditor() {
+function renderEditor() { renderClipBox(); renderCapBox(); renderMarkers(); }
+
+function renderClipBox() {
+  const box = $('#clipEditor');
+  const sel = S.clips.filter(c => S.selClips.includes(c.id));
+  let h = '<span class="label">Timeline</span>';
+  if (sel.length === 1) {
+    const c = sel[0];
+    h += `<div class="kv"><span>Clip</span><b class="clipname"></b>
+      <span>Position</span><b class="tc">${tc(c.start)} – ${tc(clipEnd(c))}</b>
+      <span>Source in</span><b class="tc">${tc(c.in)}</b>
+      <span>Source out</span><b class="tc">${tc(c.out)}</b>
+      <span>Duration</span><b class="tc">${tc(clipLen(c))}</b></div>
+      <div class="row">
+        <button class="btn small" data-act="cut" title="Cut at playhead (Ctrl+B)">Cut at playhead</button>
+        <button class="btn small" data-act="swapL" title="Swap with previous clip (Ctrl+Shift+,)">◀ Swap</button>
+        <button class="btn small" data-act="swapR" title="Swap with next clip (Ctrl+Shift+.)">Swap ▶</button>
+      </div>
+      <div class="row">
+        <button class="btn small danger" data-act="ripple" title="Delete and close the gap (Delete)">Ripple delete</button>
+        <button class="btn small" data-act="lift" title="Delete and leave a gap (Backspace)">Delete, leave gap</button>
+      </div>`;
+  } else if (sel.length > 1) {
+    const total = sel.reduce((n, c) => n + clipLen(c), 0);
+    h += `<div class="note">${sel.length} clips selected · ${tc(total)} in total.</div>
+      <div class="row">
+        <button class="btn small danger" data-act="ripple">Ripple delete</button>
+        <button class="btn small" data-act="lift">Delete, leave gap</button>
+      </div>`;
+  } else if (S.selGap) {
+    h += `<div class="note">Gap selected · ${tc(S.selGap.b - S.selGap.a)}. Ripple delete closes it.</div>
+      <div class="row"><button class="btn small" data-act="closeGap">Close gap</button></div>`;
+  } else {
+    h += `<div class="note">Click a clip to select it. Press B for the blade, or Ctrl+B to cut at the playhead. Drag a clip's edge to trim it, or press T for ripple, roll, slip and slide trims.</div>`;
+  }
+  if (S.mark.in != null || S.mark.out != null) {
+    const a = S.mark.in ?? 0, b = S.mark.out ?? tlEnd();
+    h += `<span class="label">In / Out range</span>
+      <div class="kv"><span>In</span><b class="tc">${tc(a)}</b><span>Out</span><b class="tc">${tc(b)}</b><span>Duration</span><b class="tc">${tc(b - a)}</b></div>
+      <div class="row">
+        <button class="btn small danger" data-act="rippleRange">Ripple delete range</button>
+        <button class="btn small" data-act="liftRange">Lift range</button>
+        <button class="btn small" data-act="clearRange" title="Clear In and Out (Alt+X)">Clear</button>
+      </div>`;
+  }
+  box.innerHTML = h;
+  const nm = box.querySelector('.clipname'); if (nm) nm.textContent = S.media ? S.media.name : '';
+  box.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => ACTIONS[b.dataset.act]()));
+}
+
+let taBefore = null;
+function renderCapBox() {
   const box = $('#capEditor');
   const c = S.captions.find(x => x.id === S.sel);
   if (!c) {
-    box.innerHTML = `<span class="label">Selected caption</span><div class="note">Nothing selected. Tap a caption block on the timeline, or press S to split the caption under the playhead.</div>`;
+    box.innerHTML = `<span class="label">Selected caption</span><div class="note">Pick a caption on the ST1 track or in the list below to fix its words. S splits the caption under the playhead.</div>`;
     return;
   }
   box.innerHTML = `
@@ -853,68 +1335,429 @@ function renderEditor() {
       <button class="btn small" data-n="e" data-d="-0.1" aria-label="End earlier">−</button><button class="btn small" data-n="e" data-d="0.1" aria-label="End later">+</button></div>
     <div class="row">
       <button class="btn small" id="mergeBtn">Merge with next</button>
-      <button class="btn small danger" id="delBtn">Delete</button>
+      <button class="btn small danger" id="delBtn">Delete caption</button>
     </div>`;
   const ta = $('#capText');
   ta.value = capText(c);
+  ta.addEventListener('focus', () => { taBefore = snapshot(); });
   ta.addEventListener('input', () => { setCaptionText(c, ta.value); renderTimeline(); renderList(); });
+  ta.addEventListener('change', () => { if (taBefore && snapshot() !== taBefore) pushUndo(taBefore); taBefore = null; });
   box.querySelectorAll('[data-n]').forEach(b => b.addEventListener('click', () => {
     const i = S.captions.indexOf(c), prev = S.captions[i - 1], next = S.captions[i + 1];
     const d = parseFloat(b.dataset.d);
-    if (b.dataset.n === 's') retime(c, clamp(c.s + d, prev ? prev.e : 0, c.e - 0.15), c.e);
-    else retime(c, c.s, clamp(c.e + d, c.s + 0.15, next ? next.s : duration()));
-    $('#inTc').textContent = tc(c.s); $('#outTc').textContent = tc(c.e);
-    seek(c.s + 0.01);
-    renderTimeline(); renderList();
+    edit(() => {
+      if (b.dataset.n === 's') retime(c, clamp(c.s + d, prev ? prev.e : 0, c.e - 0.15), c.e);
+      else retime(c, c.s, clamp(c.e + d, c.s + 0.15, next ? next.s : mediaDur()));
+    });
+    const at = capTl(c); if (at != null) seek(at + 0.01);
   }));
-  $('#mergeBtn').addEventListener('click', () => { if (mergeNext(c)) refreshAll(); else toast('This is the last caption.'); });
-  $('#delBtn').addEventListener('click', () => { deleteCaption(c); refreshAll(); });
+  $('#mergeBtn').addEventListener('click', () => { if (!edit(() => mergeNext(c))) toast('This is the last caption.'); });
+  $('#delBtn').addEventListener('click', () => edit(() => deleteCaption(c)));
+}
+
+function renderMarkers() {
+  const box = $('#markerBox');
+  box.innerHTML = `<span class="label">Markers · ${S.markers.length}</span>`;
+  if (!S.markers.length) {
+    box.insertAdjacentHTML('beforeend', '<div class="note">Press M to drop a marker at the playhead. Shift+↑ and Shift+↓ jump between markers.</div>');
+    return;
+  }
+  const list = document.createElement('div');
+  list.className = 'mlist';
+  for (const m of S.markers.slice().sort((a, b) => a.t - b.t)) {
+    const row = document.createElement('div');
+    row.className = 'mrow';
+    row.innerHTML = `<button class="mgo tc" title="Go to marker">${tc(m.t)}</button><input type="text" aria-label="Marker name"><button class="btn small" aria-label="Delete marker">×</button>`;
+    const [go, input, del] = row.children;
+    input.value = m.name;
+    go.addEventListener('click', () => { pause(); seek(m.t); });
+    input.addEventListener('change', () => edit(() => { m.name = input.value.trim() || 'Marker'; }));
+    del.addEventListener('click', () => edit(() => { S.markers = S.markers.filter(x => x !== m); }));
+    list.appendChild(row);
+  }
+  box.appendChild(list);
 }
 
 function select(id, doSeek) {
-  S.sel = id;
+  S.sel = id; S.selClips = []; S.selGap = null;
   const c = S.captions.find(x => x.id === id);
-  if (c && doSeek) seek(c.s + 0.01);
+  if (c && doSeek) { const at = capTl(c); if (at != null) { pause(); seek(at + 0.01); } }
   renderEditor(); renderTimeline(); renderList();
 }
 
 function refreshAll() {
-  sizePreview(); renderPool(); renderTimeline(); renderList(); renderEditor(); renderOutChips(); setPlayIcon();
+  pruneSel();
+  clock.t = clamp(clock.t, 0, tlEnd());
+  sizePreview(); renderPool(); renderTimeline(); renderList(); renderEditor(); renderOutChips(); setPlayIcon(); syncUndoBtns();
 }
 
-/* Timeline interaction */
+/* ---------------- 6f. Timeline editing actions ---------------- */
+function bladeAtPlayhead() {
+  if (!S.clips.length) return;
+  if (!edit(() => splitClipAt(qf(clock.t), MIN_CLIP))) toast('Move the playhead over a clip to cut it.');
+}
+function deleteSelectedClips(ripple) {
+  const sel = S.clips.filter(c => S.selClips.includes(c.id)).sort((a, b) => b.start - a.start);
+  if (!sel.length) return false;
+  edit(() => {
+    if (ripple) sel.forEach(c => rippleRange(c.start, clipEnd(c)));
+    else S.clips = S.clips.filter(c => !S.selClips.includes(c.id));
+    S.selClips = [];
+  });
+  return true;
+}
+function deleteRange(ripple) {
+  const a = S.mark.in ?? 0, b = S.mark.out ?? tlEnd();
+  if (b - a < 1 / TC_FPS) { toast('Set an In point before the Out point.'); return; }
+  edit(() => ripple ? rippleRange(a, b) : liftRange(a, b));
+  S.mark = { in: null, out: null };
+  pause(); seek(a); refreshAll();
+}
+function deleteAction(ripple) {
+  if (S.sel) { const c = S.captions.find(x => x.id === S.sel); if (c) edit(() => deleteCaption(c)); return; }
+  if (deleteSelectedClips(ripple)) return;
+  if (S.selGap) { const g = S.selGap; S.selGap = null; edit(() => rippleRange(g.a, g.b)); return; }
+  if (S.mark.in != null || S.mark.out != null) { deleteRange(ripple); return; }
+  toast('Select a clip or a gap, or mark In and Out, to delete.');
+}
+function swapClip(dir) {
+  if (S.selClips.length !== 1) { toast('Select one clip to swap.'); return; }
+  sortClips();
+  const c = S.clips.find(x => x.id === S.selClips[0]), o = S.clips[S.clips.indexOf(c) + dir];
+  if (!o) { toast(dir < 0 ? 'This is the first clip.' : 'This is the last clip.'); return; }
+  const [A, B] = dir < 0 ? [o, c] : [c, o];
+  edit(() => {
+    const s = A.start, gap = B.start - clipEnd(A);
+    B.start = s; A.start = s + clipLen(B) + gap;
+    sortClips();
+  });
+}
+function addMarker() {
+  if (!S.media) return;
+  const t = qf(clock.t);
+  if (S.markers.some(m => Math.abs(m.t - t) < 0.5 / TC_FPS)) { toast('There is already a marker here.'); return; }
+  edit(() => S.markers.push({ id: uid(), t, name: 'Marker ' + (S.markers.length + 1) }));
+}
+function jumpTo(points, dir) {
+  const t = clock.t;
+  const target = dir > 0 ? points.find(x => x > t + 0.001) : points.slice().reverse().find(x => x < t - 0.001);
+  if (target != null) { pause(); seek(target); }
+}
+const editPoints = () => [...new Set([0, ...S.clips.flatMap(c => [c.start, clipEnd(c)]).map(x => +x.toFixed(4))])].sort((a, b) => a - b);
+function setMark(which) {
+  if (!S.media) return;
+  S.mark[which] = qf(clock.t);
+  const { in: i, out: o } = S.mark;
+  if (i != null && o != null && o <= i) S.mark[which === 'in' ? 'out' : 'in'] = null;
+  renderRange(); renderClipBox();
+}
+function clearMarks(which) {
+  if (which !== 'out') S.mark.in = null;
+  if (which !== 'in') S.mark.out = null;
+  renderRange(); renderClipBox();
+}
+const ACTIONS = {
+  cut: bladeAtPlayhead,
+  swapL: () => swapClip(-1), swapR: () => swapClip(1),
+  ripple: () => deleteSelectedClips(true), lift: () => deleteSelectedClips(false),
+  closeGap: () => deleteAction(true),
+  rippleRange: () => deleteRange(true), liftRange: () => deleteRange(false),
+  clearRange: () => clearMarks('both'),
+};
+function setTool(t) {
+  S.tool = t;
+  $$('#toolSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
+  $('#tlScroll').dataset.tool = t;
+  $('#bladeLine').hidden = true;
+}
+function setSnap(on) { S.snap = on; $('#snapBtn').setAttribute('aria-pressed', String(on)); }
+function zoom(f, anchorT, clientX) {
+  const sc = $('#tlScroll');
+  if (anchorT == null) anchorT = clock.t;
+  const off = clientX != null ? clientX - sc.getBoundingClientRect().left : anchorT * S.pps - sc.scrollLeft;
+  S.pps = clamp(S.pps * f, 4, 600);
+  renderTimeline();
+  sc.scrollLeft = anchorT * S.pps - off;
+}
+function zoomFit() {
+  const sc = $('#tlScroll');
+  S.pps = clamp((sc.clientWidth - 30) / Math.max(1, tlEnd()), 4, 600);
+  renderTimeline(); sc.scrollLeft = 0;
+}
+function splitAtPlayhead() {
+  const src = tlToSrc(curTime()), c = src == null ? null : captionAtSrc(src);
+  if (!c) { toast('Move the playhead over a caption to split it.'); return; }
+  if (edit(() => splitCaption(c, src))) { S.sel = c.id; S.selClips = []; refreshAll(); } else toast('Not enough room to split here.');
+}
+
+/* ---------------- 6g. Timeline mouse / touch ----------------
+   Selection mode (A): drag a clip to move it, drag an edge to trim it.
+     Where two clips touch, dragging the edit point rolls it (Alt forces a plain trim).
+   Trim mode (T): drag an edge to ripple trim, drag the body to slip, Alt+drag to slide.
+   Blade mode (B): click a clip to cut it. */
+const timeAt = e => Math.max(0, (e.clientX - $('#tlInner').getBoundingClientRect().left) / S.pps);
+function fmtDelta(dt) {
+  const f = Math.round(Math.abs(dt) * TC_FPS);
+  return `${dt < 0 ? '−' : '+'}${Math.floor(f / TC_FPS)}s ${String(f % TC_FPS).padStart(2, '0')}f`;
+}
+function snapPoints(excl) {
+  const pts = [0, clock.t];
+  S.clips.forEach(c => { if (!excl || !excl.includes(c.id)) pts.push(c.start, clipEnd(c)); });
+  S.markers.forEach(m => pts.push(m.t));
+  if (S.mark.in != null) pts.push(S.mark.in);
+  if (S.mark.out != null) pts.push(S.mark.out);
+  return pts;
+}
+function snapDelta(times, pts) {
+  if (!S.snap) return null;
+  const th = 8 / S.pps;
+  let best = null;
+  for (const t of times) for (const p of pts) {
+    const d = p - t;
+    if (Math.abs(d) <= th && (!best || Math.abs(d) < Math.abs(best.d))) best = { d, at: p };
+  }
+  return best;
+}
+function showLine(sel, t) {
+  const el = $(sel);
+  el.hidden = t == null;
+  if (t != null) el.style.left = (t * S.pps) + 'px';
+}
+function neighbors(c) { const i = S.clips.indexOf(c); return { prev: S.clips[i - 1] || null, next: S.clips[i + 1] || null }; }
+const touching = (a, b) => !!(a && b && Math.abs(clipEnd(a) - b.start) < 0.002);
+
+let drag = null;
+function applyDrag(c, dt) {
+  const { prev, next } = neighbors(c), md = mediaDur(), len = clipLen(c), end = clipEnd(c);
+  let snapAt = null, show = null, word = '';
+  const trySnap = times => { const s = snapDelta(times.map(x => x + dt), drag.pts); if (s) { dt += s.d; snapAt = s.at; } };
+  switch (drag.mode) {
+    case 'move':
+      trySnap([c.start, end]);
+      dt = clamp(dt, (prev ? clipEnd(prev) : 0) - c.start, next ? next.start - end : Infinity);
+      c.start += dt; word = 'Move'; break;
+    case 'trim':
+      if (drag.edge === 'l') {
+        trySnap([c.start]);
+        dt = clamp(dt, Math.max(-c.in, (prev ? clipEnd(prev) : 0) - c.start), len - MIN_CLIP);
+        c.start += dt; c.in += dt; show = c.start;
+      } else {
+        trySnap([end]);
+        dt = clamp(dt, MIN_CLIP - len, Math.min(md - c.out, next ? next.start - end : Infinity));
+        c.out += dt; show = clipEnd(c) - 1 / TC_FPS;
+      }
+      word = 'Trim'; break;
+    case 'ripple': {
+      const after = S.clips.filter(x => x !== c && x.start >= end - 0.002);
+      if (drag.edge === 'l') {
+        dt = clamp(dt, -c.in, len - MIN_CLIP);
+        c.in += dt; after.forEach(x => { x.start -= dt; }); show = c.start;
+      } else {
+        trySnap([end]);
+        dt = clamp(dt, MIN_CLIP - len, md - c.out);
+        c.out += dt; after.forEach(x => { x.start += dt; }); show = clipEnd(c) - 1 / TC_FPS;
+      }
+      word = 'Ripple trim'; break;
+    }
+    case 'roll': {
+      const A = drag.edge === 'l' ? prev : c, B = drag.edge === 'l' ? c : next;
+      if (!A || !B) break;
+      trySnap([B.start]);
+      dt = clamp(dt, Math.max(MIN_CLIP - clipLen(A), -B.in), Math.min(md - A.out, clipLen(B) - MIN_CLIP));
+      A.out += dt; B.in += dt; B.start += dt; show = B.start; word = 'Roll'; break;
+    }
+    case 'slip':
+      dt = clamp(dt, c.out - md, c.in);
+      c.in -= dt; c.out -= dt; show = c.start; word = 'Slip'; break;
+    case 'slide': {
+      const tp = touching(prev, c), tn = touching(c, next);
+      trySnap([c.start, end]);
+      let lo = tp ? MIN_CLIP - clipLen(prev) : (prev ? clipEnd(prev) : 0) - c.start;
+      let hi = tn ? clipLen(next) - MIN_CLIP : next ? next.start - end : Infinity;
+      if (tp) hi = Math.min(hi, md - prev.out);
+      if (tn) lo = Math.max(lo, -next.in);
+      dt = clamp(dt, lo, hi);
+      if (tp) prev.out += dt;
+      if (tn) { next.in += dt; next.start += dt; }
+      c.start += dt; show = c.start; word = 'Slide'; break;
+    }
+  }
+  return { show, snapAt, label: `${word} ${fmtDelta(dt)}` };
+}
+function onClipDown(e) {
+  if (e.button !== 0 || !S.media) return;
+  const t = timeAt(e), el = e.target.closest('.clipv, .clipa');
+  e.currentTarget.setPointerCapture(e.pointerId);
+  if (!el) {
+    S.selClips = []; S.sel = null; S.selGap = gapAt(t);
+    pause(); seek(t);
+    renderTimeline(); renderEditor(); renderList();
+    return;
+  }
+  const c = S.clips.find(x => x.id === el.dataset.id);
+  if (S.tool === 'blade') {
+    const s = snapDelta([t], snapPoints());
+    if (!edit(() => splitClipAt(s ? s.at : qf(t), MIN_CLIP))) toast('Too close to the edge of the clip to cut here.');
+    return;
+  }
+  const multi = e.shiftKey || e.ctrlKey || e.metaKey;
+  if (multi) S.selClips = S.selClips.includes(c.id) ? S.selClips.filter(x => x !== c.id) : S.selClips.concat(c.id);
+  else if (!S.selClips.includes(c.id)) S.selClips = [c.id];
+  S.sel = null; S.selGap = null;
+  if (multi) { renderTimeline(); renderEditor(); renderList(); return; }
+  const edge = e.target.dataset.edge || null, { prev, next } = neighbors(c);
+  let mode;
+  if (S.tool === 'trim') mode = edge ? 'ripple' : e.altKey ? 'slide' : 'slip';
+  else if (edge) mode = !e.altKey && (edge === 'l' ? touching(prev, c) : touching(c, next)) ? 'roll' : 'trim';
+  else mode = 'move';
+  pause();
+  drag = { mode, edge, id: c.id, x0: e.clientX, before: snapshot(), orig: JSON.stringify(S.clips), pts: snapPoints([c.id]), moved: false, show: null };
+  renderTimeline(); renderEditor(); renderList();
+}
+function onClipMove(e) {
+  if (!drag) {
+    if (S.tool === 'blade' && e.target.closest('.clipv, .clipa')) {
+      const t = timeAt(e), s = snapDelta([t], snapPoints());
+      showLine('#bladeLine', s ? s.at : qf(t));
+    } else $('#bladeLine').hidden = true;
+    return;
+  }
+  if (!drag.moved && Math.abs(e.clientX - drag.x0) < 3) return;
+  drag.moved = true;
+  S.clips = JSON.parse(drag.orig);
+  const c = S.clips.find(x => x.id === drag.id);
+  const r = applyDrag(c, qf((e.clientX - drag.x0) / S.pps));
+  drag.show = r.show;
+  sortClips();
+  renderTimeline(); renderClipBox();
+  showLine('#snapLine', r.snapAt);
+  const hint = $('#tlHint');
+  hint.hidden = false; hint.textContent = r.label;
+  hint.style.left = (timeAt(e) * S.pps + 12) + 'px';
+}
+function onClipUp() {
+  if (!drag) return;
+  const d = drag;
+  drag = null;
+  $('#snapLine').hidden = true; $('#tlHint').hidden = true;
+  if (d.moved && snapshot() !== d.before) pushUndo(d.before);
+  refreshAll();
+}
+['#vTrack', '#aTrack'].forEach(sel => {
+  const el = $(sel);
+  el.addEventListener('pointerdown', onClipDown);
+  el.addEventListener('pointermove', onClipMove);
+  el.addEventListener('pointerup', onClipUp);
+  el.addEventListener('pointercancel', onClipUp);
+  el.addEventListener('pointerleave', () => { if (!drag) $('#bladeLine').hidden = true; });
+});
 $('#capTrack').addEventListener('click', e => {
   const el = e.target.closest('.cap');
   if (el) select(el.dataset.id, true);
-  else seekFromEvent(e);
+  else { pause(); seek(timeAt(e)); }
 });
-$('#ruler').addEventListener('click', seekFromEvent);
-$('#audioTrack').addEventListener('click', seekFromEvent);
-function seekFromEvent(e) {
-  const r = $('#tlInner').getBoundingClientRect();
-  seek((e.clientX - r.left) / S.pps);
-}
-$('#zoomIn').addEventListener('click', () => { S.pps = Math.min(240, S.pps * 1.5); renderTimeline(); });
-$('#zoomOut').addEventListener('click', () => { S.pps = Math.max(12, S.pps / 1.5); renderTimeline(); });
-function splitAtPlayhead() {
-  const t = curTime(), c = activeCaption(t);
-  if (!c) { toast('Move the playhead over a caption to split it.'); return; }
-  if (splitCaption(c, t)) { S.sel = c.id; refreshAll(); } else toast('Not enough room to split here.');
-}
+let rulerDrag = false;
+$('#ruler').addEventListener('pointerdown', e => {
+  const mk = e.target.closest('.mk');
+  if (mk) { const m = S.markers.find(x => x.id === mk.dataset.mid); if (m) { pause(); seek(m.t); } return; }
+  rulerDrag = true;
+  e.currentTarget.setPointerCapture(e.pointerId);
+  pause(); seek(timeAt(e));
+});
+$('#ruler').addEventListener('pointermove', e => { if (rulerDrag) seek(timeAt(e)); });
+['pointerup', 'pointercancel'].forEach(ev => $('#ruler').addEventListener(ev, () => { rulerDrag = false; }));
+$('#tlScroll').addEventListener('wheel', e => {
+  if (!(e.ctrlKey || e.metaKey)) return;
+  e.preventDefault();
+  zoom(e.deltaY < 0 ? 1.25 : 0.8, timeAt(e), e.clientX);
+}, { passive: false });
+
+/* Toolbar */
+$$('#toolSeg button').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+$('#snapBtn').addEventListener('click', () => setSnap(!S.snap));
+$('#undoBtn').addEventListener('click', undo);
+$('#redoBtn').addEventListener('click', redo);
+$('#bladeBtn').addEventListener('click', bladeAtPlayhead);
+$('#rippleBtn').addEventListener('click', () => deleteAction(true));
+$('#markerBtn').addEventListener('click', addMarker);
 $('#splitBtn').addEventListener('click', splitAtPlayhead);
+$('#zoomIn').addEventListener('click', () => zoom(1.5));
+$('#zoomOut').addEventListener('click', () => zoom(1 / 1.5));
+$('#zoomFit').addEventListener('click', zoomFit);
+$$('.keysBtn').forEach(b => b.addEventListener('click', () => $('#keysDlg').showModal()));
+$('#pauseMin').addEventListener('input', e => { $('#o-pauseMin').textContent = (+e.target.value).toFixed(1) + 's'; });
+$('#pausePad').addEventListener('input', e => { $('#o-pausePad').textContent = (+e.target.value).toFixed(2) + 's'; });
+$('#cutPausesBtn').addEventListener('click', () => {
+  if (!allWords().length) { toast('Generate captions first. Pauses are found from the timed words.'); return; }
+  const removed = edit(() => cutPauses(+$('#pauseMin').value, +$('#pausePad').value));
+  toast(removed > 0.01 ? `Removed ${removed.toFixed(1)} s of pauses. Ctrl+Z undoes it.` : 'No pauses that long were found.');
+});
 
 /* Transport */
-$('#playBtn').addEventListener('click', () => isPlaying() ? pause() : play());
+$('#playBtn').addEventListener('click', () => isPlaying() ? pause() : play(1));
 let scrubbing = false;
-$('#scrub').addEventListener('input', e => { scrubbing = true; seek(e.target.value / 1000 * duration()); });
+$('#scrub').addEventListener('input', e => { scrubbing = true; pause(); seek(e.target.value / 1000 * tlEnd()); });
 $('#scrub').addEventListener('change', () => { scrubbing = false; });
+
+/* Keyboard: modeled on DaVinci Resolve's Edit page defaults. */
 document.addEventListener('keydown', e => {
-  if (e.target.matches('input, textarea, select')) return;
-  if (e.code === 'Space') { e.preventDefault(); isPlaying() ? pause() : play(); }
-  else if (e.key === 's' || e.key === 'S') splitAtPlayhead();
-  else if (e.key === 'ArrowLeft') seek(curTime() - 1 / TC_FPS);
-  else if (e.key === 'ArrowRight') seek(curTime() + 1 / TC_FPS);
-  else if ((e.key === 'Delete' || e.key === 'Backspace') && S.sel) { const c = S.captions.find(x => x.id === S.sel); if (c) { deleteCaption(c); refreshAll(); } }
+  if ($('#keysDlg').open) return;
+  if (e.target.matches('input:not([type=range]):not([type=checkbox]), textarea, select')) return;
+  const k = e.key.length === 1 ? e.key.toLowerCase() : e.key, mod = e.ctrlKey || e.metaKey;
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+    isPlaying() ? pause() : play(1);
+    return;
+  }
+  if (mod) {
+    let ok = true;
+    if (k === 'z') e.shiftKey ? redo() : undo();
+    else if (k === 'y') redo();
+    else if (k === 'b' || k === '\\') bladeAtPlayhead();
+    else if (k === '=' || k === '+') zoom(1.5);
+    else if (k === '-' || k === '_') zoom(1 / 1.5);
+    else if (k === 'a') { S.selClips = S.clips.map(c => c.id); S.sel = null; S.selGap = null; renderTimeline(); renderEditor(); }
+    else if (e.shiftKey && (e.code === 'Comma' || e.code === 'Period')) swapClip(e.code === 'Comma' ? -1 : 1);
+    else ok = false;
+    if (ok) e.preventDefault();
+    return;
+  }
+  if (e.altKey) {
+    if (e.code === 'KeyX') clearMarks('both');
+    else if (e.code === 'KeyI') clearMarks('in');
+    else if (e.code === 'KeyO') clearMarks('out');
+    else return;
+    e.preventDefault();
+    return;
+  }
+  let handled = true;
+  switch (k) {
+    case 'j': shuttle(-1); break;
+    case 'k': pause(); break;
+    case 'l': shuttle(1); break;
+    case 'i': setMark('in'); break;
+    case 'o': setMark('out'); break;
+    case 'a': setTool('select'); break;
+    case 't': setTool('trim'); break;
+    case 'b': setTool('blade'); break;
+    case 'n': setSnap(!S.snap); toast(S.snap ? 'Snapping on' : 'Snapping off'); break;
+    case 'm': addMarker(); break;
+    case 's': splitAtPlayhead(); break;
+    case 'z': if (e.shiftKey) zoomFit(); else handled = false; break;
+    case '?': $('#keysDlg').showModal(); break;
+    case 'ArrowLeft': pause(); seek(curTime() - (e.shiftKey ? 1 : 1 / TC_FPS)); break;
+    case 'ArrowRight': pause(); seek(curTime() + (e.shiftKey ? 1 : 1 / TC_FPS)); break;
+    case 'ArrowUp': e.shiftKey ? jumpTo(S.markers.map(m => m.t).sort((a, b) => a - b), -1) : jumpTo(editPoints(), -1); break;
+    case 'ArrowDown': e.shiftKey ? jumpTo(S.markers.map(m => m.t).sort((a, b) => a - b), 1) : jumpTo(editPoints(), 1); break;
+    case 'Home': pause(); seek(0); break;
+    case 'End': pause(); seek(tlEnd()); break;
+    case 'Backspace': deleteAction(e.shiftKey); break;
+    case 'Delete': deleteAction(true); break;
+    case 'Escape': S.selClips = []; S.sel = null; S.selGap = null; if (S.tool === 'blade') setTool('select'); refreshAll(); break;
+    default: handled = false;
+  }
+  if (handled) e.preventDefault();
 });
 
 /* ---------------- Media import ---------------- */
@@ -925,13 +1768,16 @@ function importFile(file) {
   const url = URL.createObjectURL(file);
   video.onloadedmetadata = () => {
     S.media = { name: file.name, kind, file, duration: video.duration, w: video.videoWidth, h: video.videoHeight };
-    S.captions = []; S.sel = null;
+    S.captions = []; S.sel = null; S.selClips = []; S.selGap = null;
+    S.clips = fullClip(); S.markers = []; S.mark = { in: null, out: null };
     if (!$('#projName').dataset.touched) { S.name = file.name.replace(/\.[^.]+$/, ''); $('#projName').value = S.name; }
+    PEAKS = null;
+    computePeaks(file).then(p => { if (S.media && S.media.file === file) { PEAKS = p; renderTimeline(); } });
+    resetHistory();
     seek(0);
     refreshAll();
     setStatus('#asrStatus', 'Ready. Choose a model and generate captions.', '');
   };
-  video.onerror = () => toast("Your browser can't play this file. Try an MP4 (H.264) or WebM video.");
   video.src = url;
   video.load();
 }
@@ -1037,7 +1883,9 @@ async function transcribe() {
         const words = chunksToWords(data.chunks, data.mode);
         finishAsr();
         if (!words.length) { setStatus('#asrStatus', 'No speech found in this clip.', 'err'); return; }
+        const before = snapshot();
         S.captions = buildCaptions(words, S.style); S.sel = null;
+        pushUndo(before);
         refreshAll();
         setStatus('#asrStatus', `Done. ${words.length} words in ${S.captions.length} captions${data.mode === 'segment' ? ' (word timing estimated)' : ''}.`, 'ok');
         showPage('edit');
@@ -1130,7 +1978,10 @@ $('#fps').addEventListener('change', e => { S.out.fps = Number(e.target.value); 
 
 let EXP = null;
 async function startRender() {
-  if (!S.media) { toast('Import a video first.'); return; }
+  if (!S.media || !S.clips.length) { toast('There is nothing on the timeline to render.'); return; }
+  const useRange = $('#renderRange').checked && (S.mark.in != null || S.mark.out != null);
+  const r0 = useRange ? (S.mark.in ?? 0) : 0, r1 = useRange ? (S.mark.out ?? tlEnd()) : tlEnd();
+  if (r1 - r0 < 0.1) { setStatus('#renderStatus', 'The range to render is empty.', 'err'); return; }
   const mime = pickMime();
   if (!mime || !HTMLCanvasElement.prototype.captureStream) { setStatus('#renderStatus', "This browser can't record canvas video. Try Chrome, Edge, or Safari 18+.", 'err'); return; }
   pause();
@@ -1143,16 +1994,16 @@ async function startRender() {
   const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: H * W >= 1920 * 1080 ? 12e6 : 6e6 });
   const parts = [];
   rec.ondataavailable = e => { if (e.data && e.data.size) parts.push(e.data); };
-  EXP = { ctx, W, H, rec, parts, mime, cancelled: false };
+  EXP = { ctx, W, H, rec, parts, mime, cancelled: false, start: r0, end: r1 };
   rec.onstop = () => onRenderStop();
   $('#result').hidden = true;
   $('#renderBtn').disabled = true; $('#cancelBtn').hidden = false;
   setStatus('#renderStatus', 'Starting…', '');
-  seek(0);
-  if (isReal()) await new Promise(r => { const done = () => { video.removeEventListener('seeked', done); r(); }; video.addEventListener('seeked', done); setTimeout(done, 800); });
-  drawFrame(ctx, W, H, 0);
+  seek(r0);
+  if (isReal()) await new Promise(r => { const done = () => { video.removeEventListener('seeked', done); r(); }; video.addEventListener('seeked', done); syncVideo(r0); setTimeout(done, 800); });
+  drawFrame(ctx, W, H, r0);
   rec.start(250);
-  play();
+  play(1);
 }
 function finishRender() {
   if (!EXP || EXP.stopping) return;
@@ -1191,9 +2042,9 @@ $('#vttBtn').addEventListener('click', () => S.captions.length ? download(new Bl
 $('#projName').addEventListener('input', e => { S.name = e.target.value; e.target.dataset.touched = '1'; });
 $('#saveBtn').addEventListener('click', () => {
   const data = {
-    app: 'wordcut', version: 1, name: S.name, savedAt: new Date().toISOString(),
+    app: 'wordcut', version: 2, name: S.name, savedAt: new Date().toISOString(),
     media: S.media ? { name: S.media.name, kind: S.media.kind, duration: S.media.duration } : null,
-    style: S.style, out: S.out, captions: S.captions
+    style: S.style, out: S.out, captions: S.captions, clips: S.clips, markers: S.markers
   };
   download(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), (S.name || 'project') + '.wordcut.json');
 });
@@ -1207,7 +2058,13 @@ $('#openFile').addEventListener('change', async e => {
     if (d.media && d.media.kind === 'demo') loadDemo();
     S.name = d.name || 'Untitled project'; $('#projName').value = S.name;
     S.style = Object.assign({}, BASE_STYLE, d.style); S.out = Object.assign(S.out, d.out);
-    S.captions = d.captions; S.sel = null;
+    S.captions = d.captions; S.sel = null; S.selClips = []; S.selGap = null;
+    // Version 1 projects had no edit: put the whole clip on the timeline.
+    const dur = (d.media && d.media.duration) || mediaDur();
+    S.clips = Array.isArray(d.clips) && d.clips.length ? d.clips : (dur ? [{ id: uid(), start: 0, in: 0, out: dur }] : []);
+    S.markers = Array.isArray(d.markers) ? d.markers : [];
+    S.mark = { in: null, out: null };
+    clock.t = 0; resetHistory();
     refreshAll(); renderPresets(); syncStyleControls();
     if (d.media && d.media.kind !== 'demo' && (!S.media || S.media.name !== d.media.name)) {
       toast(`Project opened. Import "${d.media.name}" on the Media page to relink the footage.`);
