@@ -91,6 +91,11 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
 .clip .thumb { width: 56px; height: 56px; border-radius: 6px; background: linear-gradient(135deg, #2b3a63, #6a3d58 60%, #c27a3a); display: grid; place-items: center; font: 600 10px var(--mono); color: #fff; letter-spacing: 0.06em; }
 .clip .name { font-weight: 600; overflow-wrap: anywhere; }
 .clip .meta { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+#pool { display: flex; flex-direction: column; gap: 8px; }
+#pool .clip { cursor: grab; }
+#pool .clip.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+#pool .clip .off { color: var(--rec); font-weight: 600; }
+#pool .clip.offline .thumb { background: #5a1f22; }
 
 .progress { height: 6px; border-radius: 3px; background: var(--bg); overflow: hidden; border: 1px solid var(--line); }
 .progress > div { height: 100%; width: 0%; background: var(--accent); transition: width .2s; }
@@ -137,10 +142,12 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
 .tl-bar .sep { width: 1px; height: 20px; background: var(--line); margin-inline: 2px; }
 .btn[aria-pressed=true] { border-color: var(--accent); color: var(--accent); }
 #ioLabel { font-size: 12px; }
-.tl-body { display: grid; grid-template-columns: 40px minmax(0, 1fr); }
-.tl-heads { position: relative; border-right: 1px solid var(--line); height: 140px; }
+.tl-body { display: grid; grid-template-columns: 44px minmax(0, 1fr); }
+.tl-heads { position: relative; border-right: 1px solid var(--line); height: 198px; }
 .tl-head { position: absolute; left: 0; right: 0; display: grid; place-items: center; font: 600 11px var(--mono); color: var(--muted); letter-spacing: 0.04em; }
-.tl-scroll { overflow-x: auto; overflow-y: hidden; position: relative; height: 140px; }
+.tl-head button { border: 1px solid var(--line); background: var(--panel-2); border-radius: 4px; font: 600 11px var(--mono); color: var(--fg); padding: 2px 5px; }
+.tl-head button[aria-pressed=false] { color: var(--muted); text-decoration: line-through; background: transparent; }
+.tl-scroll { overflow-x: auto; overflow-y: hidden; position: relative; height: 198px; }
 .tl-inner { position: relative; height: 100%; min-width: 100%; }
 .ruler { position: absolute; left: 0; right: 0; top: 0; height: 24px; border-bottom: 1px solid var(--line); cursor: ew-resize; touch-action: none; }
 .tick { position: absolute; top: 0; height: 100%; border-left: 1px solid var(--line); pointer-events: none; }
@@ -148,14 +155,20 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
 .tick span { position: absolute; top: 4px; left: 4px; font: 500 10px var(--mono); color: var(--muted); white-space: nowrap; }
 .mk { position: absolute; top: 3px; width: 11px; height: 14px; margin-left: -5px; background: #4aa3ff; clip-path: polygon(0 0, 100% 0, 100% 60%, 50% 100%, 0 60%); cursor: pointer; z-index: 2; }
 .track { position: absolute; left: 0; right: 0; cursor: default; touch-action: none; }
-#vTrack { top: 30px; height: 38px; }
-#aTrack { top: 72px; height: 28px; }
-#capTrack { top: 106px; height: 28px; cursor: pointer; }
+#v2Track { top: 30px; height: 34px; }
+#v1Track { top: 68px; height: 34px; }
+#a1Track { top: 106px; height: 26px; }
+#a2Track { top: 136px; height: 26px; }
+#capTrack { top: 166px; height: 26px; cursor: pointer; }
+.track[data-k="2"] { background: rgba(255,255,255,0.015); }
 .clipv, .clipa { position: absolute; top: 0; height: 100%; border-radius: 4px; overflow: hidden; cursor: grab; }
 .clipv { background: #2d4a78; border: 1px solid #4a6ea6; color: #dbe6f7; font-size: 11.5px; padding: 0 8px; display: flex; align-items: center; white-space: nowrap; }
 .clipv .cn { overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 .clipa { background: #1f3a2b; border: 1px solid #36624a; }
 .clipa.nowave { background: #1f3a2b repeating-linear-gradient(90deg, #2f5a43 0 2px, transparent 2px 4px); }
+.clipv.t2 { background: #4a3a78; border-color: #6c58a8; }
+.clipv.off { background: #5a1f22; border-color: #93393e; color: #ffd0cc; }
+.clipv.dim, .clipa.dim { opacity: 0.4; }
 .clipa canvas { display: block; width: 100%; height: 100%; pointer-events: none; }
 .clipv.sel, .clipa.sel { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .clipv .h, .clipa .h { position: absolute; top: 0; bottom: 0; width: 8px; cursor: ew-resize; z-index: 1; }
@@ -202,7 +215,7 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
 .pages button svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .pages button[aria-current=page] { color: var(--accent); background: var(--panel-2); }
 
-#video { position: fixed; width: 2px; height: 2px; opacity: 0.01; pointer-events: none; left: 0; bottom: 0; }
+.player { position: fixed; width: 2px; height: 2px; opacity: 0.01; pointer-events: none; left: 0; bottom: 0; }
 
 #toast { position: fixed; left: 50%; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 9px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; max-width: min(460px, calc(100% - 32px)); z-index: 20; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
 
@@ -255,19 +268,26 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
       <div class="page" data-p="media">
         <div>
           <h2>Media</h2>
-          <p class="lede">Bring in a clip, then let the on-device speech model write timed captions for every word.</p>
+          <p class="lede">Bring in your clips, then let the on-device speech model write timed captions for every word.</p>
         </div>
         <div class="drop" id="drop">
-          <p>Drop a video or audio file here</p>
+          <p>Drop video or audio files here</p>
           <div class="row" style="justify-content:center">
             <label class="btn primary" for="fileIn">Import media</label>
             <button class="btn" id="demoBtn">Load demo clip</button>
           </div>
-          <input type="file" id="fileIn" accept="video/*,audio/*" hidden>
+          <input type="file" id="fileIn" accept="video/*,audio/*" multiple hidden>
         </div>
         <div class="group">
           <span class="label">Media pool</span>
           <div id="pool"></div>
+          <div class="row" id="poolActions">
+            <button class="btn small" data-place="insert" title="Insert at the playhead on V1, pushing later clips right (F9)">Insert</button>
+            <button class="btn small" data-place="overwrite" title="Overwrite at the playhead on V1 (F10)">Overwrite</button>
+            <button class="btn small" data-place="top" title="Place on V2 at the playhead, for B-roll or picture in picture">Place on top</button>
+            <button class="btn small" data-place="append" title="Add to the end of V1">Append</button>
+          </div>
+          <p class="note">Select a clip, then add it at the playhead. Or drag it straight onto V1 or V2.</p>
         </div>
         <div class="group">
           <span class="label">Auto captions</span>
@@ -289,7 +309,7 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
             </select>
           </div>
           <div class="chips" id="engineChips"></div>
-          <button class="btn primary" id="transcribeBtn">Generate captions</button>
+          <button class="btn primary" id="transcribeBtn">Generate captions for <span id="asrTarget">the selected media</span></button>
           <div class="progress" aria-hidden="true"><div id="asrBar"></div></div>
           <div class="status" id="asrStatus" role="status"></div>
           <p class="note">The model downloads once, then runs entirely in this browser. Your footage never leaves the device.</p>
@@ -437,16 +457,20 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
       <button class="btn small keysBtn" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
     </div>
     <div class="tl-body">
-      <div class="tl-heads" aria-hidden="true">
-        <div class="tl-head" style="top:30px;height:38px">V1</div>
-        <div class="tl-head" style="top:72px;height:28px">A1</div>
-        <div class="tl-head" style="top:106px;height:28px">ST1</div>
+      <div class="tl-heads">
+        <div class="tl-head" style="top:30px;height:34px"><button data-kind="v" data-k="2" aria-pressed="true">V2</button></div>
+        <div class="tl-head" style="top:68px;height:34px"><button data-kind="v" data-k="1" aria-pressed="true">V1</button></div>
+        <div class="tl-head" style="top:106px;height:26px"><button data-kind="a" data-k="1" aria-pressed="true">A1</button></div>
+        <div class="tl-head" style="top:136px;height:26px"><button data-kind="a" data-k="2" aria-pressed="true">A2</button></div>
+        <div class="tl-head" style="top:166px;height:26px">ST1</div>
       </div>
       <div class="tl-scroll" id="tlScroll" data-tool="select">
         <div class="tl-inner" id="tlInner">
           <div class="ruler" id="ruler"></div>
-          <div class="track" id="vTrack"></div>
-          <div class="track" id="aTrack"></div>
+          <div class="track" id="v2Track" data-k="2"></div>
+          <div class="track" id="v1Track" data-k="1"></div>
+          <div class="track" id="a1Track" data-k="1"></div>
+          <div class="track" id="a2Track" data-k="2"></div>
           <div class="track" id="capTrack"></div>
           <div class="range" id="rangeOv" hidden></div>
           <div class="snapline" id="snapLine" hidden></div>
@@ -466,7 +490,6 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
   </nav>
 </div>
 
-<video id="video" playsinline preload="auto"></video>
 <div id="toast" hidden></div>
 <dialog id="keysDlg" aria-labelledby="keysTitle">
   <h3 id="keysTitle">Keyboard shortcuts</h3>
@@ -484,6 +507,7 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
     <dt><kbd>B</kbd></dt><dd>Blade mode: click a clip to cut it</dd>
     <dt><kbd>N</kbd></dt><dd>Snapping on / off</dd>
     <div class="kh">Editing</div>
+    <dt><kbd>F9</kbd> <kbd>F10</kbd></dt><dd>Insert / overwrite the selected media pool clip at the playhead on V1</dd>
     <dt><kbd>Ctrl</kbd>+<kbd>B</kbd></dt><dd>Cut the clip at the playhead</dd>
     <dt><kbd>Delete</kbd></dt><dd>Ripple delete the selected clips, gap, or In to Out range</dd>
     <dt><kbd>Backspace</kbd></dt><dd>Delete and leave a gap</dd>
@@ -556,18 +580,21 @@ const presetStyle = key => Object.assign({}, BASE_STYLE, PRESETS[key], { preset:
 /* ---------------- 1. Project model ---------------- */
 const S = {
   name: 'Demo project',
-  media: null,           // { name, kind: 'video'|'audio'|'demo', duration, w, h, file? }
-  captions: [],          // [{ id, s, e, words: [{ t, s, e }] }]
+  // Media pool. A pool item with no `url` is offline: the project knows it but the file isn't loaded yet.
+  pool: [],              // [{ id, name, kind: 'video'|'audio'|'demo', duration, w, h, file?, url? }]
+  poolSel: null,         // selected pool item id
+  captions: [],          // [{ id, m, s, e, words: [{ t, s, e }] }]  s/e are source time in media m
   style: presetStyle('punch'),
   out: { aspect: '9:16', fit: 'cover', quality: 1080, fps: 30 },
-  // Edit decision list: each clip shows source media [in, out) at timeline position `start`.
-  // Picture (V1) and sound (A1) are linked, so one list drives both tracks.
-  clips: [],             // [{ id, start, in, out }]
+  // Edit decision list: each clip shows media m from [in, out) at timeline position `start`
+  // on track 1 or 2. Each track's picture (V) and sound (A) are linked, so one clip drives both.
+  clips: [],             // [{ id, track, m, start, in, out, vol, fx?: { scale, x, y, opacity } }]
+  tracks: { 1: { mute: false, hide: false }, 2: { mute: false, hide: false } },
   markers: [],           // [{ id, t, name }] in timeline time
   mark: { in: null, out: null },   // In / Out range in timeline time
   sel: null,             // selected caption id
   selClips: [],          // selected clip ids
-  selGap: null,          // selected gap { a, b }
+  selGap: null,          // selected gap { a, b, track }
   tool: 'select',        // 'select' | 'trim' | 'blade'
   snap: true,
   page: 'media',
@@ -637,16 +664,16 @@ function splitCaption(cap, t) {
     t = b[0].s;
   }
   const i = S.captions.indexOf(cap);
-  const c2 = { id: uid(), s: t, e: cap.e, words: b };
+  const c2 = { id: uid(), m: cap.m, s: t, e: cap.e, words: b };
   cap.words = a; cap.e = t;
   S.captions.splice(i + 1, 0, c2);
   return true;
 }
 function mergeNext(cap) {
-  const i = S.captions.indexOf(cap), next = S.captions[i + 1];
+  const sib = S.captions.filter(c => c.m === cap.m).sort((a, b) => a.s - b.s), next = sib[sib.indexOf(cap) + 1];
   if (!next) return false;
   cap.words = cap.words.concat(next.words); cap.e = next.e;
-  S.captions.splice(i + 1, 1);
+  S.captions = S.captions.filter(c => c !== next);
   return true;
 }
 function stamp(t, sep) {
@@ -659,6 +686,7 @@ function stamp(t, sep) {
 function captionCues() {
   const cues = [];
   for (const k of S.clips) for (const c of S.captions) {
+    if (c.m !== k.m) continue;
     const a = Math.max(c.s, k.in), b = Math.min(c.e, k.out);
     if (b - a >= 0.05) cues.push({ s: k.start + a - k.in, e: k.start + b - k.in, text: capText(c), id: c.id });
   }
@@ -674,100 +702,155 @@ const toSRT = () => captionCues().map((c, i) => `${i + 1}\n${stamp(c.s, ',')} --
 const toVTT = () => 'WEBVTT\n\n' + captionCues().map(c => `${stamp(c.s, '.')} --> ${stamp(c.e, '.')}\n${c.text}\n`).join('\n');
 
 /* ---------------- 2b. Clip engine (edit decision list) ----------------
-   Times: "source" time is a position in the imported media, "timeline" time is a
+   Times: "source" time is a position inside one media file, "timeline" time is a
    position in the edit. Captions are stored in source time, so they stay attached
-   to the words as clips are cut, trimmed and moved. */
+   to the words as clips are cut, trimmed and moved. Track 2 sits above track 1. */
 const EPS = 1e-4;
 const MIN_CLIP = 1 / TC_FPS;
+const TRACKS = [1, 2];
+const FX0 = { scale: 100, x: 0, y: 0, opacity: 1 };
 const qf = t => Math.round(t * TC_FPS) / TC_FPS;           // snap to the frame grid
-const mediaDur = () => (S.media && S.media.duration) || 0;
+const MEDIA = id => S.pool.find(m => m.id === id) || null;
+const srcDur = c => { const m = MEDIA(c.m); return m ? m.duration : Infinity; };
 const clipLen = c => c.out - c.in;
 const clipEnd = c => c.start + c.out - c.in;
-const sortClips = () => S.clips.sort((a, b) => a.start - b.start);
+const sortClips = () => S.clips.sort((a, b) => a.start - b.start || a.track - b.track);
 const tlEnd = () => S.clips.reduce((m, c) => Math.max(m, clipEnd(c)), 0);
-const fullClip = () => mediaDur() ? [{ id: uid(), start: 0, in: 0, out: mediaDur() }] : [];
-function clipAt(t) {
-  for (const c of S.clips) if (t >= c.start - EPS && t < clipEnd(c) - EPS) return c;
+const trackEnd = k => S.clips.reduce((m, c) => c.track === k ? Math.max(m, clipEnd(c)) : m, 0);
+const onTrack = k => S.clips.filter(c => c.track === k);
+// Ripple on track 1 keeps everything in sync by shifting every track; on track 2 it only closes up track 2.
+const rippleTracks = k => k === 1 ? TRACKS : [k];
+// The media that sets "Source" aspect and names the project: the first clip on V1, else the first pool item.
+function mainMedia() {
+  const c = onTrack(1)[0];
+  return (c && MEDIA(c.m)) || S.pool[0] || null;
+}
+function newClip(m, track, start, inn, out) {
+  return { id: uid(), track, m, start, in: inn, out, vol: 1 };
+}
+function clipAt(t, k) {
+  k = k || 1;
+  for (const c of S.clips) if (c.track === k && t >= c.start - EPS && t < clipEnd(c) - EPS) return c;
   return null;
 }
-function tlToSrc(t) { const c = clipAt(t); return c ? c.in + (t - c.start) : null; }
-function captionAtSrc(src) {
-  for (const c of S.captions) if (src >= c.s && src < c.e) return c;
+// The caption showing at timeline time t: look down from the top track for a clip whose media has a caption there.
+function captionAtTl(t) {
+  for (const k of [2, 1]) {
+    const c = clipAt(t, k);
+    if (!c) continue;
+    const src = c.in + (t - c.start);
+    for (const cap of S.captions) if (cap.m === c.m && src >= cap.s && src < cap.e) return { cap, src };
+  }
   return null;
 }
 // First timeline time where any part of a caption is visible, or null if it was cut out.
 function capTl(cap) {
   let best = null;
   for (const k of S.clips) {
+    if (k.m !== cap.m) continue;
     const a = Math.max(cap.s, k.in), b = Math.min(cap.e, k.out);
     if (b - a > 0.01) { const t = k.start + a - k.in; if (best == null || t < best) best = t; }
   }
   return best;
 }
-function gapAt(t) {
-  if (clipAt(t) || t >= tlEnd()) return null;
+function gapAt(t, k) {
+  if (clipAt(t, k) || t >= trackEnd(k)) return null;
   let a = 0, b = Infinity;
-  for (const c of S.clips) { const e = clipEnd(c); if (e <= t + EPS) a = Math.max(a, e); if (c.start > t) b = Math.min(b, c.start); }
-  return b !== Infinity && b - a > EPS ? { a, b } : null;
+  for (const c of S.clips) {
+    if (c.track !== k) continue;
+    const e = clipEnd(c);
+    if (e <= t + EPS) a = Math.max(a, e);
+    if (c.start > t) b = Math.min(b, c.start);
+  }
+  return b !== Infinity && b - a > EPS ? { a, b, track: k } : null;
 }
-// Blade: cut the clip under timeline time t into two. Returns the new right-hand clip, or false.
-function splitClipAt(t, min) {
+// Blade: cut the clip under timeline time t on track k into two. Returns the new right-hand clip, or false.
+function splitClipAt(t, min, k) {
   min = min || EPS * 10;
-  const c = clipAt(t);
+  const c = clipAt(t, k || 1);
   if (!c || t - c.start < min || clipEnd(c) - t < min) return false;
   const cut = c.in + (t - c.start);
-  const b = { id: uid(), start: t, in: cut, out: c.out };
+  const b = Object.assign(JSON.parse(JSON.stringify(c)), { id: uid(), start: t, in: cut });
   c.out = cut;
   S.clips.push(b); sortClips();
   return b;
 }
-// Lift: remove everything between a and b, leaving a gap.
-function liftRange(a, b) {
-  splitClipAt(a); splitClipAt(b);
-  S.clips = S.clips.filter(c => !(c.start >= a - EPS && clipEnd(c) <= b + EPS));
+// Lift: remove everything between a and b on the given tracks, leaving a gap.
+function liftRange(a, b, tracks) {
+  tracks = tracks || TRACKS;
+  tracks.forEach(k => { splitClipAt(a, 0, k); splitClipAt(b, 0, k); });
+  S.clips = S.clips.filter(c => !(tracks.includes(c.track) && c.start >= a - EPS && clipEnd(c) <= b + EPS));
 }
-// Ripple delete: remove everything between a and b and pull later clips and markers left.
-function rippleRange(a, b) {
-  liftRange(a, b);
+// Ripple delete: remove everything between a and b and pull later material left.
+function rippleRange(a, b, tracks) {
+  tracks = tracks || TRACKS;
+  liftRange(a, b, tracks);
   const d = b - a;
-  S.clips.forEach(c => { if (c.start >= b - EPS) c.start -= d; });
-  S.markers = S.markers.filter(m => m.t < a || m.t >= b);
-  S.markers.forEach(m => { if (m.t >= b) m.t -= d; });
+  S.clips.forEach(c => { if (tracks.includes(c.track) && c.start >= b - EPS) c.start -= d; });
+  if (tracks.length === TRACKS.length) {
+    S.markers = S.markers.filter(m => m.t < a || m.t >= b);
+    S.markers.forEach(m => { if (m.t >= b) m.t -= d; });
+  }
   sortClips();
 }
-// Remove pauses: keep only the stretches around spoken words, back to back.
+// Put a whole media file on the timeline, the way Resolve's edit buttons do.
+//   insert: at the playhead on V1, pushing everything after it right (all tracks)
+//   overwrite: at the playhead on track k, replacing what's there
+//   top: at the playhead on V2 (B-roll / picture in picture)
+//   append: at the end of V1
+function placeMedia(mode, id, t, k) {
+  const med = MEDIA(id);
+  if (!med) return null;
+  const len = med.duration;
+  k = mode === 'top' ? 2 : mode === 'overwrite' ? (k || 1) : 1;
+  t = mode === 'append' ? trackEnd(1) : qf(Math.max(0, t));
+  const c = newClip(id, k, t, 0, len);
+  if (mode === 'insert') {
+    TRACKS.forEach(tk => splitClipAt(t, 0, tk));
+    S.clips.forEach(x => { if (x.start >= t - EPS) x.start += len; });
+    S.markers.forEach(m => { if (m.t >= t) m.t += len; });
+  } else liftRange(t, t + len, [k]);
+  S.clips.push(c); sortClips();
+  S.selClips = [c.id]; S.sel = null; S.selGap = null;
+  return c;
+}
+// Remove pauses: on V1, cut the stretches between spoken words out of every clip
+// whose media has captions, rippling all tracks so B-roll stays in sync.
 function cutPauses(minGap, pad) {
-  const words = allWords().filter(w => w.e > w.s).sort((a, b) => a.s - b.s);
-  if (!words.length) return 0;
-  const speech = [];
-  for (const w of words) {
-    const last = speech[speech.length - 1];
-    if (last && w.s - last[1] < minGap) last[1] = Math.max(last[1], w.e); else speech.push([w.s, w.e]);
-  }
-  const padded = [];
-  for (const [a, b] of speech) {
-    const r = [Math.max(0, a - pad), Math.min(mediaDur(), b + pad)], last = padded[padded.length - 1];
-    if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]); else padded.push(r);
-  }
-  sortClips();
-  const out = [];
-  let removed = 0;
-  for (const c of S.clips) {
-    let pos = c.start - removed, kept = 0;
-    for (const [a, b] of padded) {
-      const s0 = Math.max(a, c.in), e0 = Math.min(b, c.out);
-      if (e0 - s0 >= MIN_CLIP) { out.push({ id: uid(), start: pos, in: s0, out: e0 }); pos += e0 - s0; kept += e0 - s0; }
+  const speechOf = new Map();
+  for (const m of new Set(S.captions.map(c => c.m))) {
+    const words = S.captions.filter(c => c.m === m).flatMap(c => c.words).filter(w => w.e > w.s).sort((a, b) => a.s - b.s);
+    const sp = [];
+    for (const w of words) {
+      const last = sp[sp.length - 1];
+      if (last && w.s - last[1] < minGap) last[1] = Math.max(last[1], w.e); else sp.push([w.s, w.e]);
     }
-    removed += clipLen(c) - kept;
+    const padded = [];
+    for (const [a, b] of sp) {
+      const r = [Math.max(0, a - pad), b + pad], last = padded[padded.length - 1];
+      if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]); else padded.push(r);
+    }
+    speechOf.set(m, padded);
   }
-  S.clips = out; S.selClips = [];
-  S.markers.forEach(m => { m.t = Math.min(m.t, tlEnd()); });
+  const cuts = [];   // timeline ranges to ripple out
+  for (const c of onTrack(1)) {
+    const sp = speechOf.get(c.m);
+    if (!sp) continue;
+    let pos = c.in;
+    const keep = sp.map(([a, b]) => [Math.max(a, c.in), Math.min(b, c.out)]).filter(([a, b]) => b - a >= MIN_CLIP);
+    for (const [a, b] of keep) { if (a - pos >= MIN_CLIP) cuts.push([c.start + pos - c.in, c.start + a - c.in]); pos = b; }
+    if (c.out - pos >= MIN_CLIP) cuts.push([c.start + pos - c.in, clipEnd(c)]);
+  }
+  cuts.sort((x, y) => y[0] - x[0]);
+  let removed = 0;
+  for (const [a, b] of cuts) { rippleRange(a, b, TRACKS); removed += b - a; }
+  S.selClips = [];
   return removed;
 }
 
-/* Waveform peaks for the A1 track (max level per 10 ms of source audio). */
+/* Waveform peaks for the A tracks (max level per 10 ms of source audio), per media. */
 const PEAK_RATE = 100;
-let PEAKS = null;
+const PEAKS = new Map();
 function demoPeaks(words, dur) {
   const n = Math.ceil(dur * PEAK_RATE), p = new Float32Array(n);
   let seed = 7;
@@ -808,27 +891,37 @@ function demoWords() {
     return w;
   });
 }
-function loadDemo() {
+// Start an empty project. Keeps already-loaded files around in `keep` so an opened project can relink them.
+function resetProject() {
   pause();
-  video.removeAttribute('src'); video.load();
-  const words = demoWords();
-  S.media = { name: 'Demo clip', kind: 'demo', duration: words[words.length - 1].e + 1.2, w: 1080, h: 1920 };
-  S.captions = buildCaptions(words, S.style);
-  S.clips = fullClip(); S.markers = []; S.mark = { in: null, out: null };
-  S.sel = null; S.selClips = []; S.selGap = null; clock.t = 0;
-  PEAKS = demoPeaks(words, S.media.duration);
+  players.forEach(p => { p.el.pause(); p.el.remove(); });
+  players.clear();
+  S.pool = []; S.poolSel = null; S.captions = []; S.clips = []; S.markers = [];
+  S.mark = { in: null, out: null }; S.sel = null; S.selClips = []; S.selGap = null;
+  S.tracks = { 1: { mute: false, hide: false }, 2: { mute: false, hide: false } };
+  PEAKS.clear();
+  clock.t = 0;
   resetHistory();
+}
+function loadDemo() {
+  resetProject();
+  const words = demoWords();
+  const med = { id: 'demo', name: 'Demo clip', kind: 'demo', duration: words[words.length - 1].e + 1.2, w: 1080, h: 1920 };
+  S.pool = [med]; S.poolSel = med.id;
+  S.captions = buildCaptions(words, S.style).map(c => Object.assign(c, { m: med.id }));
+  S.clips = [newClip(med.id, 1, 0, 0, med.duration)];
+  PEAKS.set(med.id, demoPeaks(words, med.duration));
   refreshAll();
 }
 
 /* ---------------- 4. Renderer ---------------- */
-const video = $('#video');
 const fontStr = (st, px) => `${st.italic ? 'italic ' : ''}${st.weight} ${px}px "${st.font}", system-ui, sans-serif`;
 
 function outDims(q) {
   q = q || S.out.quality;
   let rw = 9, rh = 16;
-  if (S.out.aspect === 'source') { if (S.media && S.media.w && S.media.h) { rw = S.media.w; rh = S.media.h; } }
+  const mm = mainMedia();
+  if (S.out.aspect === 'source') { if (mm && mm.w && mm.h) { rw = mm.w; rh = mm.h; } }
   else [rw, rh] = S.out.aspect.split(':').map(Number);
   let W, H;
   if (rw <= rh) { W = q; H = Math.round(q * rh / rw); } else { H = q; W = Math.round(q * rw / rh); }
@@ -853,20 +946,44 @@ function drawDemoBg(ctx, W, H, t) {
     ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
   });
 }
-function drawBackground(ctx, W, H, t) {
-  const m = S.media;
-  if (m && m.kind === 'video' && video.readyState >= 2 && video.videoWidth) {
-    const vw = video.videoWidth, vh = video.videoHeight;
-    if (S.out.fit === 'contain') {
-      ctx.save();
-      if ('filter' in ctx) ctx.filter = 'blur(28px) brightness(0.55)';
-      drawFit(ctx, video, vw, vh, W, H, 'cover');
-      ctx.restore();
-      drawFit(ctx, video, vw, vh, W, H, 'contain');
-    } else drawFit(ctx, video, vw, vh, W, H, 'cover');
-  } else {
-    drawDemoBg(ctx, W, H, t);
+function drawOffline(ctx, W, H, name) {
+  ctx.fillStyle = '#3a1416'; ctx.fillRect(0, 0, W, H);
+  const fs = Math.min(W, H) * 0.06;
+  ctx.fillStyle = '#ffb4ad'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = `600 ${fs}px system-ui, sans-serif`;
+  ctx.fillText('Media offline', W / 2, H / 2 - fs * 0.7);
+  ctx.font = `400 ${fs * 0.55}px system-ui, sans-serif`;
+  ctx.fillText(name, W / 2, H / 2 + fs * 0.5, W * 0.9);
+}
+function drawVideo(ctx, v, W, H, fit) {
+  const vw = v.videoWidth, vh = v.videoHeight;
+  if (fit === 'contain') {
+    ctx.save();
+    if ('filter' in ctx) ctx.filter = 'blur(28px) brightness(0.55)';
+    drawFit(ctx, v, vw, vh, W, H, 'cover');
+    ctx.restore();
+    drawFit(ctx, v, vw, vh, W, H, 'contain');
+  } else drawFit(ctx, v, vw, vh, W, H, 'cover');
+}
+// Draw one clip's picture, with its zoom / position / opacity, into the frame.
+function drawClipPicture(ctx, W, H, c, k, src) {
+  const med = MEDIA(c.m);
+  if (!med || (med.kind === 'audio' && k !== 1)) return;   // sound only
+  const fx = c.fx || FX0, s = fx.scale / 100;
+  ctx.save();
+  ctx.globalAlpha = clamp(fx.opacity, 0, 1);
+  ctx.translate(W / 2 + fx.x / 100 * W, H / 2 + fx.y / 100 * H);
+  ctx.scale(s, s);
+  ctx.translate(-W / 2, -H / 2);
+  ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
+  if (med.kind === 'demo' || med.kind === 'audio') drawDemoBg(ctx, W, H, src);
+  else if (!med.url) drawOffline(ctx, W, H, med.name);
+  else {
+    const p = players.get(med.id + ':' + k), v = p && p.el;
+    if (v && v.readyState >= 2 && v.videoWidth) drawVideo(ctx, v, W, H, k === 1 ? S.out.fit : 'cover');
   }
+  if (s < 1) { ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 3 / s; ctx.strokeRect(0, 0, W, H); }
+  ctx.restore();
 }
 function roundRect(ctx, x, y, w, h, r) {
   r = Math.min(r, h / 2, w / 2);
@@ -878,11 +995,8 @@ function hexA(hex, a) {
   const n = parseInt(hex.slice(1), 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 }
-// Caption on screen at timeline time t (looked up in source time under the playhead).
-function activeCaption(t) {
-  const src = tlToSrc(t);
-  return src == null ? null : captionAtSrc(src);
-}
+// Caption on screen at timeline time t.
+function activeCaption(t) { const hit = captionAtTl(t); return hit ? hit.cap : null; }
 function drawWord(ctx, it, x, cy, fs, k, t, st) {
   const w = it.w, active = t >= w.s && t < w.e, future = t < w.s;
   let scale = 1, alpha = 1, dy = 0, color = st.color;
@@ -957,54 +1071,89 @@ function drawCaption(ctx, cap, W, H, t, st) {
 function drawFrame(ctx, W, H, t) {
   ctx.save();
   ctx.clearRect(0, 0, W, H);
-  const src = tlToSrc(t);
-  if (src == null) { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); }   // gap in the edit
-  else {
-    drawBackground(ctx, W, H, src);
-    const cap = captionAtSrc(src);
-    if (cap) drawCaption(ctx, cap, W, H, src, S.style);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);   // shows through gaps
+  for (const k of TRACKS) {                           // V1 first, V2 on top
+    if (S.tracks[k].hide) continue;
+    const c = clipAt(t, k);
+    if (c) drawClipPicture(ctx, W, H, c, k, c.in + (t - c.start));
   }
+  const hit = captionAtTl(t);
+  if (hit) drawCaption(ctx, hit.cap, W, H, hit.src, S.style);
   ctx.restore();
 }
 
 /* ---------------- 6a. Playback clock ----------------
-   The timeline has its own clock. The <video> element follows it: it gets cued to
-   whatever source frame sits under the playhead, so cuts, gaps and reordered clips
-   all play back correctly. While a clip plays forward, the clock is read back from
-   the video so picture and sound stay in sync. */
+   The timeline has its own clock. Each media file gets a hidden <video> per track
+   ("player") that is cued to the source frame under the playhead, so cuts, gaps,
+   reordered clips and stacked tracks all play back correctly. While playing
+   forward, the clock is read back from the lowest playing video (the "master")
+   so picture and sound stay in sync. */
 const clock = { playing: false, t: 0, rate: 1 };
-const isReal = () => S.media && S.media.kind !== 'demo';
 const curTime = () => clock.t;
+const players = new Map();   // "mediaId:track" -> { el, gain, cue }
 let AC = null, audioDest = null;
-function ensureAudio() {
-  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+function connectPlayer(p) {
+  if (!AC || p.gain) return;
   try {
-    AC = new (window.AudioContext || window.webkitAudioContext)();
-    const src = AC.createMediaElementSource(video);
-    audioDest = AC.createMediaStreamDestination();
-    src.connect(AC.destination); src.connect(audioDest);
-  } catch (e) { AC = null; audioDest = null; }
+    const src = AC.createMediaElementSource(p.el);
+    p.gain = AC.createGain();
+    src.connect(p.gain); p.gain.connect(AC.destination); p.gain.connect(audioDest);
+    p.el.volume = 1;
+  } catch (e) { /* keep element audio */ }
 }
+function ensureAudio() {
+  if (!AC) {
+    try {
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      audioDest = AC.createMediaStreamDestination();
+    } catch (e) { AC = null; audioDest = null; return; }
+  }
+  if (AC.state === 'suspended') AC.resume();
+  players.forEach(connectPlayer);
+}
+function playerFor(id, k) {
+  const med = MEDIA(id);
+  if (!med || !med.url) return null;
+  const key = id + ':' + k;
+  let p = players.get(key);
+  if (!p) {
+    const el = document.createElement('video');
+    el.playsInline = true; el.preload = 'auto'; el.className = 'player'; el.src = med.url;
+    el.addEventListener('error', () => toast(`Your browser can't play "${med.name}". Try an MP4 (H.264) or WebM file.`));
+    document.body.appendChild(el);
+    p = { el, gain: null, cue: null };
+    players.set(key, p);
+    connectPlayer(p);
+  }
+  return p;
+}
+function setVol(p, v) {
+  v = clamp(v, 0, 1);
+  if (p.gain) p.gain.gain.value = v; else p.el.volume = v;
+}
+const isLive = med => med && med.url && med.kind !== 'demo';
+const hasLiveMedia = () => S.clips.some(c => isLive(MEDIA(c.m)));
 const isPlaying = () => clock.playing;
 function play(rate) {
-  if (!S.media || !S.clips.length) return;
+  if (!S.clips.length) return;
   rate = rate || 1;
   if (rate > 0 && clock.t >= tlEnd() - 0.05) clock.t = 0;
   if (rate < 0 && clock.t <= 0.01) return;
-  clock.playing = true; clock.rate = rate; vClip = null;
-  if (isReal()) ensureAudio();
+  clock.playing = true; clock.rate = rate;
+  players.forEach(p => { p.cue = null; });
+  if (hasLiveMedia()) ensureAudio();
   setPlayIcon();
 }
 function pause() {
   clock.playing = false; clock.rate = 1;
-  if (isReal() && !video.paused) video.pause();
+  players.forEach(p => { p.cue = null; if (!p.el.paused) p.el.pause(); });
   setPlayIcon();
 }
-function seek(t) { clock.t = clamp(t, 0, tlEnd()); vClip = null; }
+function seek(t) { clock.t = clamp(t, 0, tlEnd()); players.forEach(p => { p.cue = null; }); }
 // J / L: press again to go faster (1x, 2x, 4x, 8x), the other key reverses. K stops.
 function shuttle(dir) {
-  if (!S.media) return;
-  if (clock.playing && Math.sign(clock.rate) === dir) { clock.rate = dir * Math.min(8, Math.abs(clock.rate) * 2); vClip = null; }
+  if (!S.clips.length) return;
+  if (clock.playing && Math.sign(clock.rate) === dir) { clock.rate = dir * Math.min(8, Math.abs(clock.rate) * 2); players.forEach(p => { p.cue = null; }); }
   else play(dir);
   setPlayIcon();
 }
@@ -1015,40 +1164,56 @@ function setPlayIcon() {
   chip.hidden = !show;
   if (show) chip.textContent = (clock.rate < 0 ? '◀ ' : '▶ ') + Math.abs(clock.rate) + '×';
 }
-
-let vClip = null;   // id of the clip the video element is currently playing
-function syncVideo(t) {
-  if (!isReal() || !video.currentSrc) return;
-  const c = clipAt(t);
-  if (!c) { vClip = null; if (!video.paused) video.pause(); return; }
-  const want = c.in + (t - c.start);
-  if (clock.playing && clock.rate > 0 && !drag) {
-    if (video.playbackRate !== clock.rate) video.playbackRate = clock.rate;
-    if (vClip !== c.id) { vClip = c.id; if (Math.abs(video.currentTime - want) > 0.05) video.currentTime = want; }
-    if (video.paused) video.play().catch(() => { pause(); toast('Playback was blocked. Press play again.'); });
-  } else {
-    vClip = null;
-    if (!video.paused) video.pause();
-    if (!video.seeking && Math.abs(video.currentTime - want) > 0.4 / TC_FPS) video.currentTime = want;
+// The lowest track with a playable video under t drives the clock.
+function masterAt(t) {
+  for (const k of TRACKS) {
+    const c = clipAt(t, k);
+    if (c && isLive(MEDIA(c.m))) return { c, k, p: playerFor(c.m, k) };
   }
+  return null;
+}
+function syncPlayers(t) {
+  const active = new Set();
+  const fwd = clock.playing && clock.rate > 0 && !drag;
+  const master = masterAt(t);
+  for (const k of TRACKS) {
+    const c = clipAt(t, k);
+    if (!c || !isLive(MEDIA(c.m))) continue;
+    const p = playerFor(c.m, k);
+    if (!p) continue;
+    active.add(p);
+    const el = p.el, want = c.in + (t - c.start);
+    setVol(p, S.tracks[k].mute ? 0 : (c.vol ?? 1));
+    if (fwd) {
+      if (el.playbackRate !== clock.rate) el.playbackRate = clock.rate;
+      if (p.cue !== c.id) { p.cue = c.id; if (Math.abs(el.currentTime - want) > 0.05) el.currentTime = want; }
+      else if (!(master && master.p === p) && !el.seeking && Math.abs(el.currentTime - want) > 0.2) el.currentTime = want;
+      if (el.paused) el.play().catch(() => { pause(); toast('Playback was blocked. Press play again.'); });
+    } else {
+      p.cue = null;
+      if (!el.paused) el.pause();
+      if (!el.seeking && Math.abs(el.currentTime - want) > 0.4 / TC_FPS) el.currentTime = want;
+    }
+  }
+  players.forEach(p => { if (!active.has(p)) { p.cue = null; if (!p.el.paused) p.el.pause(); } });
 }
 function advance(dt) {
   const end = EXP ? EXP.end : tlEnd();
   let t = clock.t;
-  const c = clipAt(t);
-  if (clock.rate > 0 && isReal() && c) {
-    if (vClip === c.id && !video.paused && !video.seeking && video.readyState >= 2) {
-      const vt = c.start + (video.currentTime - c.in);
+  const m = clock.rate > 0 ? masterAt(t) : null;
+  if (m && m.p) {
+    const el = m.p.el, c = m.c;
+    if (m.p.cue === c.id && !el.paused && !el.seeking && el.readyState >= 2) {
+      const vt = c.start + (el.currentTime - c.in);
       t = vt >= t - 0.25 && vt <= t + 0.5 ? Math.max(t, vt) : t + dt * clock.rate;
-      if (video.currentTime >= c.out - 0.002 || video.ended) t = Math.max(t, clipEnd(c));
+      if (el.currentTime >= c.out - 0.002 || el.ended) t = Math.max(t, clipEnd(c));
     }
-    // Otherwise the video is still cueing this clip: hold the playhead so sound and picture stay together.
+    // Otherwise the master is still cueing this clip: hold the playhead so sound and picture stay together.
   } else t += dt * clock.rate;
   if (t >= end) { clock.t = end; if (EXP) finishRender(); else pause(); return; }
-  if (t <= 0) { clock.t = 0; pause(); return; }
+  if (clock.rate < 0 && t <= 0) { clock.t = 0; pause(); return; }
   clock.t = t;
 }
-video.addEventListener('error', () => { if (video.currentSrc) toast("Your browser can't play this file. Try an MP4 (H.264) or WebM video."); });
 
 /* ---------------- 6b. Preview canvas sizing ---------------- */
 const pv = $('#preview'), pctx = pv.getContext('2d');
@@ -1070,7 +1235,7 @@ function tick(now) {
   lastNow = now;
   if (clock.playing) advance(dt);
   const t = curTime(), vt = drag && drag.show != null ? drag.show : t;
-  syncVideo(vt);
+  syncPlayers(vt);
   drawFrame(pctx, pv.width, pv.height, vt);
   if (EXP) {
     drawFrame(EXP.ctx, EXP.W, EXP.H, t);
@@ -1132,7 +1297,8 @@ function syncUndoBtns() { $('#undoBtn').disabled = !hist.undo.length; $('#redoBt
 function pruneSel() {
   S.selClips = S.selClips.filter(id => S.clips.some(c => c.id === id));
   if (S.sel && !S.captions.some(c => c.id === S.sel)) S.sel = null;
-  if (S.selGap && !gapAt((S.selGap.a + S.selGap.b) / 2)) S.selGap = null;
+  if (S.selGap && !gapAt((S.selGap.a + S.selGap.b) / 2, S.selGap.track)) S.selGap = null;
+  if (S.poolSel && !MEDIA(S.poolSel)) S.poolSel = S.pool[0] ? S.pool[0].id : null;
 }
 
 /* ---------------- 6e. Pages + UI rendering ---------------- */
@@ -1140,41 +1306,76 @@ function showPage(p) {
   S.page = p;
   $$('.page').forEach(el => el.hidden = el.dataset.p !== p);
   $$('.pages button').forEach(b => b.dataset.page === p ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current'));
-  $('#timeline').hidden = !(p === 'edit' || p === 'captions');
+  $('#timeline').hidden = !(p === 'edit' || p === 'captions' || p === 'media');
   if (p === 'captions') syncStyleControls();
   requestAnimationFrame(() => { sizePreview(); renderTimeline(); });
 }
 $$('.pages button').forEach(b => b.addEventListener('click', () => showPage(b.dataset.page)));
 
+function mediaRes(m) {
+  return m.kind === 'demo' ? 'Generated · 1080×1920' : m.kind === 'audio' ? 'Audio only' : m.w ? `${m.w}×${m.h}` : 'Video';
+}
 function renderPool() {
-  const m = S.media, pool = $('#pool');
-  if (!m) { pool.innerHTML = '<div class="empty">No media yet.</div>'; return; }
-  const res = m.kind === 'video' && m.w ? `${m.w}×${m.h}` : m.kind === 'audio' ? 'Audio only' : 'Generated · 1080×1920';
-  pool.innerHTML = `<div class="clip"><div class="thumb">${m.kind === 'audio' ? 'AUDIO' : m.kind === 'demo' ? 'DEMO' : 'VIDEO'}</div>
-    <div style="min-width:0"><div class="name"></div><div class="meta">${tc(m.duration)} · ${res} · ${S.clips.length} clip${S.clips.length === 1 ? '' : 's'} on the timeline · ${S.captions.length} captions</div></div></div>`;
-  pool.querySelector('.name').textContent = m.name;
-  $('#stageLabel').textContent = m.kind === 'demo' ? 'Demo clip' : m.name;
+  const pool = $('#pool');
+  if (!S.pool.length) { pool.innerHTML = '<div class="empty">No media yet.</div>'; }
+  else {
+    pool.innerHTML = '';
+    for (const m of S.pool) {
+      const uses = S.clips.filter(c => c.m === m.id).length, caps = S.captions.filter(c => c.m === m.id).length;
+      const el = document.createElement('div');
+      el.className = 'clip' + (m.id === S.poolSel ? ' on' : '') + (!m.url && m.kind !== 'demo' ? ' offline' : '');
+      el.draggable = true; el.tabIndex = 0; el.dataset.mid = m.id;
+      el.setAttribute('role', 'button'); el.setAttribute('aria-pressed', String(m.id === S.poolSel));
+      el.innerHTML = `<div class="thumb">${m.kind === 'audio' ? 'AUDIO' : m.kind === 'demo' ? 'DEMO' : 'VIDEO'}</div>
+        <div style="min-width:0"><div class="name"></div><div class="meta">${tc(m.duration)} · ${mediaRes(m)}${!m.url && m.kind !== 'demo' ? ' · <b class="off">offline</b>' : ''}<br>${uses ? `On the timeline ${uses}×` : 'Not used yet'}${caps ? ` · ${caps} captions` : ''}</div></div>`;
+      el.querySelector('.name').textContent = m.name;
+      el.title = 'Drag onto the timeline, or select it and use the buttons below';
+      el.addEventListener('click', () => { S.poolSel = m.id; renderPool(); });
+      el.addEventListener('keydown', e => { if (e.key === 'Enter') { S.poolSel = m.id; renderPool(); } });
+      el.addEventListener('dragstart', e => { S.poolSel = m.id; e.dataTransfer.setData('text/wordcut-media', m.id); e.dataTransfer.effectAllowed = 'copy'; });
+      pool.appendChild(el);
+    }
+  }
+  const sel = MEDIA(S.poolSel);
+  $$('#poolActions button').forEach(b => { b.disabled = !sel; });
+  $('#asrTarget').textContent = sel ? sel.name : 'the selected media';
+  const mm = mainMedia();
+  $('#stageLabel').textContent = !mm ? '' : mm.kind === 'demo' ? 'Demo clip' : S.name;
 }
 
 function drawWave(cv, c, pxW) {
-  const w = Math.max(1, Math.min(4096, Math.round(pxW))), h = 24;
+  const w = Math.max(1, Math.min(4096, Math.round(pxW))), h = 22;
   cv.width = w; cv.height = h;
-  if (!PEAKS) return;
-  const g = cv.getContext('2d'), dur = clipLen(c);
+  const pk = PEAKS.get(c.m);
+  if (!pk) return;
+  const g = cv.getContext('2d'), dur = clipLen(c), v = c.vol ?? 1;
   g.fillStyle = '#7fd3a2';
   for (let x = 0; x < w; x++) {
     const a = c.in + x / w * dur, b = c.in + (x + 1) / w * dur;
     const i0 = Math.floor(a * PEAK_RATE), i1 = Math.max(i0 + 1, Math.ceil(b * PEAK_RATE));
     let m = 0;
-    for (let i = i0; i < i1 && i < PEAKS.length; i++) if (PEAKS[i] > m) m = PEAKS[i];
-    const bh = Math.max(1, m * (h - 2));
+    for (let i = i0; i < i1 && i < pk.length; i++) if (pk[i] > m) m = pk[i];
+    const bh = Math.max(1, m * v * (h - 2));
     g.fillRect(x, (h - bh) / 2, 1, bh);
   }
 }
 
+const ROWS = { v2: [30, 34], v1: [68, 34], a1: [106, 26], a2: [136, 26], st: [166, 26] };
+function trackFromY(y) {
+  for (const [key, [top, h]] of Object.entries(ROWS)) if (y >= top - 2 && y < top + h + 2) return key === 'st' ? null : +key[1];
+  return null;
+}
+function renderTrackHeads() {
+  $$('.tl-head button').forEach(b => {
+    const k = +b.dataset.k, kind = b.dataset.kind, off = kind === 'v' ? S.tracks[k].hide : S.tracks[k].mute;
+    b.setAttribute('aria-pressed', String(!off));
+    b.title = kind === 'v' ? (off ? `Show V${k}` : `Hide V${k}`) : (off ? `Unmute A${k}` : `Mute A${k}`);
+  });
+}
+
 function renderTimeline() {
   const end = tlEnd(), sc = $('#tlScroll'), inner = $('#tlInner'), pps = S.pps;
-  const span = Math.max(end + Math.max(4, end * 0.25), mediaDur());
+  const span = Math.max(end + Math.max(4, end * 0.25), 10);
   inner.style.width = Math.max(span * pps, sc.clientWidth) + 'px';
   const step = pps >= 60 ? 1 : pps >= 25 ? 2 : pps >= 10 ? 5 : 10, major = step * 5;
   let html = '';
@@ -1186,37 +1387,42 @@ function renderTimeline() {
   $('#ruler').innerHTML = html;
   $$('#ruler .mk').forEach(el => { const m = S.markers.find(x => x.id === el.dataset.mid); el.title = `${m.name} · ${tc(m.t)}`; });
 
-  // V1 and A1: the same clips, linked, so picture and sound always cut together.
-  const vt = $('#vTrack'), at = $('#aTrack'), name = S.media ? S.media.name : '';
-  vt.innerHTML = ''; at.innerHTML = '';
+  // Each clip draws a picture block on V<track> and a linked sound block on A<track>.
+  const rows = { v1: $('#v1Track'), v2: $('#v2Track'), a1: $('#a1Track'), a2: $('#a2Track') };
+  Object.values(rows).forEach(r => { r.innerHTML = ''; });
   for (const c of S.clips) {
+    const med = MEDIA(c.m), name = med ? med.name : 'Missing media', off = !med || (!med.url && med.kind !== 'demo');
     const w = Math.max(3, clipLen(c) * pps - 1), sel = S.selClips.includes(c.id);
-    const ve = document.createElement('div');
-    ve.className = 'clipv' + (sel ? ' sel' : '');
-    ve.dataset.id = c.id;
-    ve.style.left = (c.start * pps) + 'px'; ve.style.width = w + 'px';
-    ve.title = `${name}\nSource ${tc(c.in)} – ${tc(c.out)}`;
-    const ae = ve.cloneNode(false);
-    ve.innerHTML = '<i class="h" data-edge="l"></i><span class="cn"></span><i class="h" data-edge="r"></i>';
-    ve.querySelector('.cn').textContent = name;
-    vt.appendChild(ve);
-    ae.className = 'clipa' + (sel ? ' sel' : '') + (PEAKS ? '' : ' nowave');
+    const base = document.createElement('div');
+    base.dataset.id = c.id;
+    base.style.left = (c.start * pps) + 'px'; base.style.width = w + 'px';
+    base.title = `${name}\nSource ${tc(c.in)} – ${tc(c.out)}`;
+    if (!med || med.kind !== 'audio') {
+      const ve = base.cloneNode(false);
+      ve.className = 'clipv' + (sel ? ' sel' : '') + (off ? ' off' : '') + (c.track === 2 ? ' t2' : '') + (S.tracks[c.track].hide ? ' dim' : '');
+      ve.innerHTML = '<i class="h" data-edge="l"></i><span class="cn"></span><i class="h" data-edge="r"></i>';
+      ve.querySelector('.cn').textContent = (off ? 'Offline · ' : '') + name;
+      rows['v' + c.track].appendChild(ve);
+    }
+    const ae = base.cloneNode(false);
+    ae.className = 'clipa' + (sel ? ' sel' : '') + (PEAKS.get(c.m) ? '' : ' nowave') + (S.tracks[c.track].mute || (c.vol ?? 1) === 0 ? ' dim' : '');
     ae.innerHTML = '<canvas></canvas><i class="h" data-edge="l"></i><i class="h" data-edge="r"></i>';
     drawWave(ae.querySelector('canvas'), c, w);
-    at.appendChild(ae);
+    rows['a' + c.track].appendChild(ae);
   }
   if (S.selGap) {
     const g = document.createElement('div');
     g.className = 'gapsel';
     g.style.left = (S.selGap.a * pps) + 'px'; g.style.width = ((S.selGap.b - S.selGap.a) * pps) + 'px';
-    vt.appendChild(g);
+    rows['v' + S.selGap.track].appendChild(g);
   }
 
-  // ST1: captions live in source time and are mapped through the clips, so they follow every cut.
+  // ST1: captions live in source time and are mapped through the clips of their media, so they follow every cut.
   const track = $('#capTrack');
   track.innerHTML = '';
   for (const c of S.captions) {
     for (const k of S.clips) {
+      if (k.m !== c.m) continue;
       const a = Math.max(c.s, k.in), b = Math.min(c.e, k.out);
       if (b - a < 0.01) continue;
       const el = document.createElement('div');
@@ -1229,6 +1435,7 @@ function renderTimeline() {
       track.appendChild(el);
     }
   }
+  renderTrackHeads();
   renderRange();
   $('#tcDur').textContent = tc(end);
 }
@@ -1255,14 +1462,15 @@ function renderList() {
   $('#tlistLabel').textContent = `Captions · ${S.captions.length}`;
   if (!S.captions.length) { list.innerHTML = '<div class="empty">No captions yet. Generate them on the Media page.</div>'; return; }
   list.innerHTML = '';
-  for (const c of S.captions) {
-    const at = capTl(c);
+  const rows = S.captions.map(c => ({ c, at: capTl(c) }));
+  rows.sort((x, y) => (x.at ?? Infinity) - (y.at ?? Infinity) || x.c.s - y.c.s);
+  for (const { c, at } of rows) {
     const b = document.createElement('button');
     b.className = 'tline' + (at == null ? ' gone' : ''); b.dataset.id = c.id;
     if (c.id === S.sel) b.setAttribute('aria-current', 'true');
     b.innerHTML = `<span class="tc">${at == null ? 'cut' : tc(at)}</span><span></span>`;
     b.lastChild.textContent = capText(c);
-    if (at == null) b.title = 'This caption is in footage you cut from the timeline.';
+    if (at == null) b.title = 'This caption is in footage that is not on the timeline.';
     b.addEventListener('click', () => select(c.id, true));
     list.appendChild(b);
   }
@@ -1270,21 +1478,40 @@ function renderList() {
 
 function renderEditor() { renderClipBox(); renderCapBox(); renderMarkers(); }
 
+// Sliders in the inspector change a clip live; one undo step per drag.
+let sliderBefore = null;
+function bindLive(input, apply) {
+  input.addEventListener('pointerdown', () => { sliderBefore = snapshot(); });
+  input.addEventListener('focus', () => { if (!sliderBefore) sliderBefore = snapshot(); });
+  input.addEventListener('input', () => { apply(+input.value); renderTimeline(); });
+  input.addEventListener('change', () => { if (sliderBefore && snapshot() !== sliderBefore) pushUndo(sliderBefore); sliderBefore = null; });
+}
 function renderClipBox() {
   const box = $('#clipEditor');
   const sel = S.clips.filter(c => S.selClips.includes(c.id));
   let h = '<span class="label">Timeline</span>';
   if (sel.length === 1) {
-    const c = sel[0];
+    const c = sel[0], med = MEDIA(c.m), fx = c.fx || FX0;
+    const hasPic = med && med.kind !== 'audio', hasSound = med && med.kind !== 'demo';
     h += `<div class="kv"><span>Clip</span><b class="clipname"></b>
+      <span>Track</span><b>V${c.track} / A${c.track}</b>
       <span>Position</span><b class="tc">${tc(c.start)} – ${tc(clipEnd(c))}</b>
       <span>Source in</span><b class="tc">${tc(c.in)}</b>
       <span>Source out</span><b class="tc">${tc(c.out)}</b>
       <span>Duration</span><b class="tc">${tc(clipLen(c))}</b></div>
+      ${hasSound ? `<div class="field"><span>Volume</span><div class="with-val"><input type="range" id="cVol" min="0" max="100" value="${Math.round((c.vol ?? 1) * 100)}"><output id="o-cVol">${Math.round((c.vol ?? 1) * 100)}%</output></div></div>` : ''}
+      ${hasPic ? `<div class="field"><span>Zoom</span><div class="with-val"><input type="range" id="cScale" min="10" max="200" value="${fx.scale}"><output id="o-cScale">${fx.scale}%</output></div></div>
+      <div class="field"><span>Position X</span><div class="with-val"><input type="range" id="cX" min="-50" max="50" value="${fx.x}"><output id="o-cX">${fx.x}</output></div></div>
+      <div class="field"><span>Position Y</span><div class="with-val"><input type="range" id="cY" min="-50" max="50" value="${fx.y}"><output id="o-cY">${fx.y}</output></div></div>
+      <div class="field"><span>Opacity</span><div class="with-val"><input type="range" id="cOp" min="0" max="100" value="${Math.round(fx.opacity * 100)}"><output id="o-cOp">${Math.round(fx.opacity * 100)}%</output></div></div>
+      <div class="row">
+        <button class="btn small" data-act="pip" title="Shrink into a corner, for picture in picture">Picture in picture</button>
+        <button class="btn small" data-act="fxReset">Reset transform</button>
+      </div>` : ''}
       <div class="row">
         <button class="btn small" data-act="cut" title="Cut at playhead (Ctrl+B)">Cut at playhead</button>
-        <button class="btn small" data-act="swapL" title="Swap with previous clip (Ctrl+Shift+,)">◀ Swap</button>
-        <button class="btn small" data-act="swapR" title="Swap with next clip (Ctrl+Shift+.)">Swap ▶</button>
+        <button class="btn small" data-act="swapL" title="Swap with previous clip on this track (Ctrl+Shift+,)">◀ Swap</button>
+        <button class="btn small" data-act="swapR" title="Swap with next clip on this track (Ctrl+Shift+.)">Swap ▶</button>
       </div>
       <div class="row">
         <button class="btn small danger" data-act="ripple" title="Delete and close the gap (Delete)">Ripple delete</button>
@@ -1298,10 +1525,10 @@ function renderClipBox() {
         <button class="btn small" data-act="lift">Delete, leave gap</button>
       </div>`;
   } else if (S.selGap) {
-    h += `<div class="note">Gap selected · ${tc(S.selGap.b - S.selGap.a)}. Ripple delete closes it.</div>
+    h += `<div class="note">Gap on V${S.selGap.track} · ${tc(S.selGap.b - S.selGap.a)}. Ripple delete closes it${S.selGap.track === 1 ? ' and moves every track with it' : ''}.</div>
       <div class="row"><button class="btn small" data-act="closeGap">Close gap</button></div>`;
   } else {
-    h += `<div class="note">Click a clip to select it. Press B for the blade, or Ctrl+B to cut at the playhead. Drag a clip's edge to trim it, or press T for ripple, roll, slip and slide trims.</div>`;
+    h += `<div class="note">Click a clip to select it. Press B for the blade, or Ctrl+B to cut at the playhead. Drag a clip's edge to trim it, drag it up or down to change tracks, or press T for ripple, roll, slip and slide trims. Add more footage on the Media page.</div>`;
   }
   if (S.mark.in != null || S.mark.out != null) {
     const a = S.mark.in ?? 0, b = S.mark.out ?? tlEnd();
@@ -1314,11 +1541,22 @@ function renderClipBox() {
       </div>`;
   }
   box.innerHTML = h;
-  const nm = box.querySelector('.clipname'); if (nm) nm.textContent = S.media ? S.media.name : '';
+  if (sel.length === 1) {
+    const c = sel[0], med = MEDIA(c.m);
+    box.querySelector('.clipname').textContent = med ? med.name : 'Missing media';
+    const fx = () => (c.fx = c.fx || Object.assign({}, FX0));
+    const live = (id, apply, fmt) => { const el = $('#' + id); if (el) bindLive(el, v => { apply(v); $('#o-' + id).textContent = fmt(v); }); };
+    live('cVol', v => { c.vol = v / 100; }, v => v + '%');
+    live('cScale', v => { fx().scale = v; }, v => v + '%');
+    live('cX', v => { fx().x = v; }, v => String(v));
+    live('cY', v => { fx().y = v; }, v => String(v));
+    live('cOp', v => { fx().opacity = v / 100; }, v => v + '%');
+  }
   box.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => ACTIONS[b.dataset.act]()));
 }
 
 let taBefore = null;
+const capSiblings = c => S.captions.filter(x => x.m === c.m).sort((a, b) => a.s - b.s);
 function renderCapBox() {
   const box = $('#capEditor');
   const c = S.captions.find(x => x.id === S.sel);
@@ -1343,11 +1581,11 @@ function renderCapBox() {
   ta.addEventListener('input', () => { setCaptionText(c, ta.value); renderTimeline(); renderList(); });
   ta.addEventListener('change', () => { if (taBefore && snapshot() !== taBefore) pushUndo(taBefore); taBefore = null; });
   box.querySelectorAll('[data-n]').forEach(b => b.addEventListener('click', () => {
-    const i = S.captions.indexOf(c), prev = S.captions[i - 1], next = S.captions[i + 1];
+    const sib = capSiblings(c), i = sib.indexOf(c), prev = sib[i - 1], next = sib[i + 1], med = MEDIA(c.m);
     const d = parseFloat(b.dataset.d);
     edit(() => {
       if (b.dataset.n === 's') retime(c, clamp(c.s + d, prev ? prev.e : 0, c.e - 0.15), c.e);
-      else retime(c, c.s, clamp(c.e + d, c.s + 0.15, next ? next.s : mediaDur()));
+      else retime(c, c.s, clamp(c.e + d, c.s + 0.15, next ? next.s : (med ? med.duration : c.e + d)));
     });
     const at = capTl(c); if (at != null) seek(at + 0.01);
   }));
@@ -1394,14 +1632,23 @@ function refreshAll() {
 /* ---------------- 6f. Timeline editing actions ---------------- */
 function bladeAtPlayhead() {
   if (!S.clips.length) return;
-  if (!edit(() => splitClipAt(qf(clock.t), MIN_CLIP))) toast('Move the playhead over a clip to cut it.');
+  const t = qf(clock.t);
+  // Cut only the selected clips under the playhead if there are any, otherwise every track.
+  const selUnder = TRACKS.filter(k => { const c = clipAt(t, k); return c && S.selClips.includes(c.id); });
+  const tracks = selUnder.length ? selUnder : TRACKS;
+  const cut = edit(() => tracks.map(k => splitClipAt(t, MIN_CLIP, k)).some(Boolean));
+  if (!cut) toast('Move the playhead over a clip to cut it.');
 }
 function deleteSelectedClips(ripple) {
-  const sel = S.clips.filter(c => S.selClips.includes(c.id)).sort((a, b) => b.start - a.start);
-  if (!sel.length) return false;
+  const ids = S.clips.filter(c => S.selClips.includes(c.id)).sort((a, b) => b.start - a.start).map(c => c.id);
+  if (!ids.length) return false;
   edit(() => {
-    if (ripple) sel.forEach(c => rippleRange(c.start, clipEnd(c)));
-    else S.clips = S.clips.filter(c => !S.selClips.includes(c.id));
+    for (const id of ids) {
+      const c = S.clips.find(x => x.id === id);
+      if (!c) continue;
+      if (ripple) rippleRange(c.start, clipEnd(c), rippleTracks(c.track));
+      else S.clips = S.clips.filter(x => x !== c);
+    }
     S.selClips = [];
   });
   return true;
@@ -1409,22 +1656,22 @@ function deleteSelectedClips(ripple) {
 function deleteRange(ripple) {
   const a = S.mark.in ?? 0, b = S.mark.out ?? tlEnd();
   if (b - a < 1 / TC_FPS) { toast('Set an In point before the Out point.'); return; }
-  edit(() => ripple ? rippleRange(a, b) : liftRange(a, b));
+  edit(() => ripple ? rippleRange(a, b, TRACKS) : liftRange(a, b, TRACKS));
   S.mark = { in: null, out: null };
   pause(); seek(a); refreshAll();
 }
 function deleteAction(ripple) {
   if (S.sel) { const c = S.captions.find(x => x.id === S.sel); if (c) edit(() => deleteCaption(c)); return; }
   if (deleteSelectedClips(ripple)) return;
-  if (S.selGap) { const g = S.selGap; S.selGap = null; edit(() => rippleRange(g.a, g.b)); return; }
+  if (S.selGap) { const g = S.selGap; S.selGap = null; edit(() => rippleRange(g.a, g.b, rippleTracks(g.track))); return; }
   if (S.mark.in != null || S.mark.out != null) { deleteRange(ripple); return; }
   toast('Select a clip or a gap, or mark In and Out, to delete.');
 }
 function swapClip(dir) {
   if (S.selClips.length !== 1) { toast('Select one clip to swap.'); return; }
   sortClips();
-  const c = S.clips.find(x => x.id === S.selClips[0]), o = S.clips[S.clips.indexOf(c) + dir];
-  if (!o) { toast(dir < 0 ? 'This is the first clip.' : 'This is the last clip.'); return; }
+  const c = S.clips.find(x => x.id === S.selClips[0]), row = onTrack(c.track), o = row[row.indexOf(c) + dir];
+  if (!o) { toast(dir < 0 ? 'This is the first clip on its track.' : 'This is the last clip on its track.'); return; }
   const [A, B] = dir < 0 ? [o, c] : [c, o];
   edit(() => {
     const s = A.start, gap = B.start - clipEnd(A);
@@ -1433,7 +1680,7 @@ function swapClip(dir) {
   });
 }
 function addMarker() {
-  if (!S.media) return;
+  if (!S.clips.length) return;
   const t = qf(clock.t);
   if (S.markers.some(m => Math.abs(m.t - t) < 0.5 / TC_FPS)) { toast('There is already a marker here.'); return; }
   edit(() => S.markers.push({ id: uid(), t, name: 'Marker ' + (S.markers.length + 1) }));
@@ -1445,7 +1692,7 @@ function jumpTo(points, dir) {
 }
 const editPoints = () => [...new Set([0, ...S.clips.flatMap(c => [c.start, clipEnd(c)]).map(x => +x.toFixed(4))])].sort((a, b) => a - b);
 function setMark(which) {
-  if (!S.media) return;
+  if (!S.clips.length) return;
   S.mark[which] = qf(clock.t);
   const { in: i, out: o } = S.mark;
   if (i != null && o != null && o <= i) S.mark[which === 'in' ? 'out' : 'in'] = null;
@@ -1456,6 +1703,16 @@ function clearMarks(which) {
   if (which !== 'in') S.mark.out = null;
   renderRange(); renderClipBox();
 }
+function setClipFx(fx) {
+  const c = S.clips.find(x => x.id === S.selClips[0]);
+  if (c) edit(() => { c.fx = fx ? Object.assign({}, fx) : undefined; if (!fx) delete c.fx; });
+}
+function placeSelected(mode) {
+  const med = MEDIA(S.poolSel);
+  if (!med) { toast('Select a clip in the media pool first.'); return; }
+  edit(() => placeMedia(mode, med.id, clock.t, 1));
+  if (mode === 'append') seek(S.clips.find(c => c.id === S.selClips[0]).start);
+}
 const ACTIONS = {
   cut: bladeAtPlayhead,
   swapL: () => swapClip(-1), swapR: () => swapClip(1),
@@ -1463,6 +1720,8 @@ const ACTIONS = {
   closeGap: () => deleteAction(true),
   rippleRange: () => deleteRange(true), liftRange: () => deleteRange(false),
   clearRange: () => clearMarks('both'),
+  pip: () => setClipFx({ scale: 35, x: 27, y: -30, opacity: 1 }),
+  fxReset: () => setClipFx(null),
 };
 function setTool(t) {
   S.tool = t;
@@ -1485,17 +1744,19 @@ function zoomFit() {
   renderTimeline(); sc.scrollLeft = 0;
 }
 function splitAtPlayhead() {
-  const src = tlToSrc(curTime()), c = src == null ? null : captionAtSrc(src);
-  if (!c) { toast('Move the playhead over a caption to split it.'); return; }
-  if (edit(() => splitCaption(c, src))) { S.sel = c.id; S.selClips = []; refreshAll(); } else toast('Not enough room to split here.');
+  const hit = captionAtTl(curTime());
+  if (!hit) { toast('Move the playhead over a caption to split it.'); return; }
+  const c = hit.cap;
+  if (edit(() => splitCaption(c, hit.src))) { S.sel = c.id; S.selClips = []; refreshAll(); } else toast('Not enough room to split here.');
 }
 
 /* ---------------- 6g. Timeline mouse / touch ----------------
-   Selection mode (A): drag a clip to move it, drag an edge to trim it.
+   Selection mode (A): drag a clip to move it (up or down to change tracks), drag an edge to trim it.
      Where two clips touch, dragging the edit point rolls it (Alt forces a plain trim).
    Trim mode (T): drag an edge to ripple trim, drag the body to slip, Alt+drag to slide.
    Blade mode (B): click a clip to cut it. */
 const timeAt = e => Math.max(0, (e.clientX - $('#tlInner').getBoundingClientRect().left) / S.pps);
+const yAt = e => e.clientY - $('#tlInner').getBoundingClientRect().top;
 function fmtDelta(dt) {
   const f = Math.round(Math.abs(dt) * TC_FPS);
   return `${dt < 0 ? '−' : '+'}${Math.floor(f / TC_FPS)}s ${String(f % TC_FPS).padStart(2, '0')}f`;
@@ -1523,19 +1784,43 @@ function showLine(sel, t) {
   el.hidden = t == null;
   if (t != null) el.style.left = (t * S.pps) + 'px';
 }
-function neighbors(c) { const i = S.clips.indexOf(c); return { prev: S.clips[i - 1] || null, next: S.clips[i + 1] || null }; }
+function neighbors(c) { const row = onTrack(c.track), i = row.indexOf(c); return { prev: row[i - 1] || null, next: row[i + 1] || null }; }
 const touching = (a, b) => !!(a && b && Math.abs(clipEnd(a) - b.start) < 0.002);
+// Free start position for a clip of length len on track k nearest to `want`, avoiding other clips.
+function freeSlot(k, len, want, self) {
+  const row = onTrack(k).filter(x => x !== self);
+  let lo = 0, best = null;
+  const consider = (a, b) => {
+    if (b - a < len - EPS) return;
+    const s = clamp(want, a, b - len);
+    if (best == null || Math.abs(s - want) < Math.abs(best - want)) best = s;
+  };
+  for (const x of row) { consider(lo, x.start); lo = Math.max(lo, clipEnd(x)); }
+  consider(lo, Infinity);
+  return best;
+}
+// Largest leftward shift allowed for clips at or after `from` on track k before they hit clips that stay put.
+function shiftRoom(k, from, self) {
+  const stay = onTrack(k).filter(x => x !== self && x.start < from - 0.002);
+  const moving = onTrack(k).filter(x => x !== self && x.start >= from - 0.002);
+  if (!moving.length) return Infinity;
+  const first = Math.min(...moving.map(x => x.start)), wall = stay.reduce((m, x) => Math.max(m, clipEnd(x)), 0);
+  return Math.max(0, first - wall);
+}
 
 let drag = null;
-function applyDrag(c, dt) {
-  const { prev, next } = neighbors(c), md = mediaDur(), len = clipLen(c), end = clipEnd(c);
+function applyDrag(c, dt, e) {
+  const { prev, next } = neighbors(c), md = srcDur(c), len = clipLen(c), end = clipEnd(c);
   let snapAt = null, show = null, word = '';
   const trySnap = times => { const s = snapDelta(times.map(x => x + dt), drag.pts); if (s) { dt += s.d; snapAt = s.at; } };
   switch (drag.mode) {
-    case 'move':
+    case 'move': {
+      const k = trackFromY(yAt(e)) || c.track;
       trySnap([c.start, end]);
-      dt = clamp(dt, (prev ? clipEnd(prev) : 0) - c.start, next ? next.start - end : Infinity);
-      c.start += dt; word = 'Move'; break;
+      const s = freeSlot(k, len, Math.max(0, c.start + dt), c);
+      if (s != null) { dt = s - c.start; c.start = s; c.track = k; }
+      word = `Move to V${c.track}`; break;
+    }
     case 'trim':
       if (drag.edge === 'l') {
         trySnap([c.start]);
@@ -1548,13 +1833,16 @@ function applyDrag(c, dt) {
       }
       word = 'Trim'; break;
     case 'ripple': {
-      const after = S.clips.filter(x => x !== c && x.start >= end - 0.002);
+      // Ripple on V1 moves later material on every track; on V2 only V2.
+      const tracks = rippleTracks(c.track);
+      const after = S.clips.filter(x => x !== c && tracks.includes(x.track) && x.start >= end - 0.002);
+      const room = Math.min(...tracks.filter(k => k !== c.track).map(k => shiftRoom(k, end, c)), Infinity);
       if (drag.edge === 'l') {
-        dt = clamp(dt, -c.in, len - MIN_CLIP);
+        dt = clamp(dt, -c.in, Math.min(len - MIN_CLIP, room));
         c.in += dt; after.forEach(x => { x.start -= dt; }); show = c.start;
       } else {
         trySnap([end]);
-        dt = clamp(dt, MIN_CLIP - len, md - c.out);
+        dt = clamp(dt, Math.max(MIN_CLIP - len, -room), md - c.out);
         c.out += dt; after.forEach(x => { x.start += dt; }); show = clipEnd(c) - 1 / TC_FPS;
       }
       word = 'Ripple trim'; break;
@@ -1563,7 +1851,7 @@ function applyDrag(c, dt) {
       const A = drag.edge === 'l' ? prev : c, B = drag.edge === 'l' ? c : next;
       if (!A || !B) break;
       trySnap([B.start]);
-      dt = clamp(dt, Math.max(MIN_CLIP - clipLen(A), -B.in), Math.min(md - A.out, clipLen(B) - MIN_CLIP));
+      dt = clamp(dt, Math.max(MIN_CLIP - clipLen(A), -B.in), Math.min(srcDur(A) - A.out, clipLen(B) - MIN_CLIP));
       A.out += dt; B.in += dt; B.start += dt; show = B.start; word = 'Roll'; break;
     }
     case 'slip':
@@ -1574,7 +1862,7 @@ function applyDrag(c, dt) {
       trySnap([c.start, end]);
       let lo = tp ? MIN_CLIP - clipLen(prev) : (prev ? clipEnd(prev) : 0) - c.start;
       let hi = tn ? clipLen(next) - MIN_CLIP : next ? next.start - end : Infinity;
-      if (tp) hi = Math.min(hi, md - prev.out);
+      if (tp) hi = Math.min(hi, srcDur(prev) - prev.out);
       if (tn) lo = Math.max(lo, -next.in);
       dt = clamp(dt, lo, hi);
       if (tp) prev.out += dt;
@@ -1585,11 +1873,11 @@ function applyDrag(c, dt) {
   return { show, snapAt, label: `${word} ${fmtDelta(dt)}` };
 }
 function onClipDown(e) {
-  if (e.button !== 0 || !S.media) return;
-  const t = timeAt(e), el = e.target.closest('.clipv, .clipa');
+  if (e.button !== 0 || !S.pool.length) return;
+  const t = timeAt(e), el = e.target.closest('.clipv, .clipa'), k = +e.currentTarget.dataset.k;
   e.currentTarget.setPointerCapture(e.pointerId);
   if (!el) {
-    S.selClips = []; S.sel = null; S.selGap = gapAt(t);
+    S.selClips = []; S.sel = null; S.selGap = gapAt(t, k);
     pause(); seek(t);
     renderTimeline(); renderEditor(); renderList();
     return;
@@ -1597,7 +1885,7 @@ function onClipDown(e) {
   const c = S.clips.find(x => x.id === el.dataset.id);
   if (S.tool === 'blade') {
     const s = snapDelta([t], snapPoints());
-    if (!edit(() => splitClipAt(s ? s.at : qf(t), MIN_CLIP))) toast('Too close to the edge of the clip to cut here.');
+    if (!edit(() => splitClipAt(s ? s.at : qf(t), MIN_CLIP, c.track))) toast('Too close to the edge of the clip to cut here.');
     return;
   }
   const multi = e.shiftKey || e.ctrlKey || e.metaKey;
@@ -1611,7 +1899,7 @@ function onClipDown(e) {
   else if (edge) mode = !e.altKey && (edge === 'l' ? touching(prev, c) : touching(c, next)) ? 'roll' : 'trim';
   else mode = 'move';
   pause();
-  drag = { mode, edge, id: c.id, x0: e.clientX, before: snapshot(), orig: JSON.stringify(S.clips), pts: snapPoints([c.id]), moved: false, show: null };
+  drag = { mode, edge, id: c.id, x0: e.clientX, y0: e.clientY, before: snapshot(), orig: JSON.stringify(S.clips), pts: snapPoints([c.id]), moved: false, show: null };
   renderTimeline(); renderEditor(); renderList();
 }
 function onClipMove(e) {
@@ -1622,11 +1910,11 @@ function onClipMove(e) {
     } else $('#bladeLine').hidden = true;
     return;
   }
-  if (!drag.moved && Math.abs(e.clientX - drag.x0) < 3) return;
+  if (!drag.moved && Math.abs(e.clientX - drag.x0) < 3 && Math.abs(e.clientY - drag.y0) < 6) return;
   drag.moved = true;
   S.clips = JSON.parse(drag.orig);
   const c = S.clips.find(x => x.id === drag.id);
-  const r = applyDrag(c, qf((e.clientX - drag.x0) / S.pps));
+  const r = applyDrag(c, qf((e.clientX - drag.x0) / S.pps), e);
   drag.show = r.show;
   sortClips();
   renderTimeline(); renderClipBox();
@@ -1643,8 +1931,7 @@ function onClipUp() {
   if (d.moved && snapshot() !== d.before) pushUndo(d.before);
   refreshAll();
 }
-['#vTrack', '#aTrack'].forEach(sel => {
-  const el = $(sel);
+$$('.track[data-k]').forEach(el => {
   el.addEventListener('pointerdown', onClipDown);
   el.addEventListener('pointermove', onClipMove);
   el.addEventListener('pointerup', onClipUp);
@@ -1671,6 +1958,27 @@ $('#tlScroll').addEventListener('wheel', e => {
   e.preventDefault();
   zoom(e.deltaY < 0 ? 1.25 : 0.8, timeAt(e), e.clientX);
 }, { passive: false });
+// Drag from the media pool onto a track: overwrite at the drop point (snapped).
+$('#tlScroll').addEventListener('dragover', e => {
+  if (![...e.dataTransfer.types].includes('text/wordcut-media')) return;
+  e.preventDefault(); e.dataTransfer.dropEffect = 'copy';
+  const t = timeAt(e), s = snapDelta([t], snapPoints());
+  showLine('#snapLine', s ? s.at : qf(t));
+});
+$('#tlScroll').addEventListener('dragleave', () => { $('#snapLine').hidden = true; });
+$('#tlScroll').addEventListener('drop', e => {
+  const id = e.dataTransfer.getData('text/wordcut-media');
+  $('#snapLine').hidden = true;
+  if (!id || !MEDIA(id)) return;
+  e.preventDefault();
+  const t = timeAt(e), s = snapDelta([t], snapPoints()), k = trackFromY(yAt(e)) || 1;
+  edit(() => placeMedia('overwrite', id, s ? s.at : t, k));
+});
+$$('.tl-head button').forEach(b => b.addEventListener('click', () => {
+  const k = +b.dataset.k, tr = S.tracks[k];
+  if (b.dataset.kind === 'v') tr.hide = !tr.hide; else tr.mute = !tr.mute;
+  renderTimeline();
+}));
 
 /* Toolbar */
 $$('#toolSeg button').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
@@ -1685,10 +1993,11 @@ $('#zoomIn').addEventListener('click', () => zoom(1.5));
 $('#zoomOut').addEventListener('click', () => zoom(1 / 1.5));
 $('#zoomFit').addEventListener('click', zoomFit);
 $$('.keysBtn').forEach(b => b.addEventListener('click', () => $('#keysDlg').showModal()));
+$$('#poolActions button').forEach(b => b.addEventListener('click', () => placeSelected(b.dataset.place)));
 $('#pauseMin').addEventListener('input', e => { $('#o-pauseMin').textContent = (+e.target.value).toFixed(1) + 's'; });
 $('#pausePad').addEventListener('input', e => { $('#o-pausePad').textContent = (+e.target.value).toFixed(2) + 's'; });
 $('#cutPausesBtn').addEventListener('click', () => {
-  if (!allWords().length) { toast('Generate captions first. Pauses are found from the timed words.'); return; }
+  if (!S.captions.length) { toast('Generate captions first. Pauses are found from the timed words.'); return; }
   const removed = edit(() => cutPauses(+$('#pauseMin').value, +$('#pausePad').value));
   toast(removed > 0.01 ? `Removed ${removed.toFixed(1)} s of pauses. Ctrl+Z undoes it.` : 'No pauses that long were found.');
 });
@@ -1710,6 +2019,7 @@ document.addEventListener('keydown', e => {
     isPlaying() ? pause() : play(1);
     return;
   }
+  if (k === 'F9' || k === 'F10') { e.preventDefault(); placeSelected(k === 'F9' ? 'insert' : 'overwrite'); return; }
   if (mod) {
     let ok = true;
     if (k === 'z') e.shiftKey ? redo() : undo();
@@ -1760,33 +2070,62 @@ document.addEventListener('keydown', e => {
   if (handled) e.preventDefault();
 });
 
-/* ---------------- Media import ---------------- */
-function importFile(file) {
-  if (!file) return;
-  pause();
-  const kind = file.type.startsWith('audio') ? 'audio' : 'video';
-  const url = URL.createObjectURL(file);
-  video.onloadedmetadata = () => {
-    S.media = { name: file.name, kind, file, duration: video.duration, w: video.videoWidth, h: video.videoHeight };
-    S.captions = []; S.sel = null; S.selClips = []; S.selGap = null;
-    S.clips = fullClip(); S.markers = []; S.mark = { in: null, out: null };
-    if (!$('#projName').dataset.touched) { S.name = file.name.replace(/\.[^.]+$/, ''); $('#projName').value = S.name; }
-    PEAKS = null;
-    computePeaks(file).then(p => { if (S.media && S.media.file === file) { PEAKS = p; renderTimeline(); } });
-    resetHistory();
-    seek(0);
-    refreshAll();
-    setStatus('#asrStatus', 'Ready. Choose a model and generate captions.', '');
-  };
-  video.src = url;
-  video.load();
+/* ---------------- Media import ----------------
+   Files go into the media pool. The first file of a new project goes straight onto V1.
+   A file whose name matches an offline pool item relinks it. */
+function probeMedia(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file), el = document.createElement('video');
+    el.preload = 'metadata'; el.muted = true;
+    el.onloadedmetadata = () => {
+      const kind = file.type.startsWith('audio') || !el.videoWidth ? 'audio' : 'video';
+      resolve({ url, kind, duration: el.duration, w: el.videoWidth, h: el.videoHeight });
+      el.removeAttribute('src'); el.load();
+    };
+    el.onerror = () => { URL.revokeObjectURL(url); reject(new Error('unsupported')); };
+    el.src = url;
+  });
 }
-$('#fileIn').addEventListener('change', e => { importFile(e.target.files[0]); e.target.value = ''; });
+async function importFiles(files) {
+  files = [...files].filter(Boolean);
+  if (!files.length) return;
+  pause();
+  if (S.pool.some(m => m.kind === 'demo')) resetProject();   // real footage replaces the demo
+  let added = 0, relinked = 0;
+  const autoPlace = !S.clips.length;
+  for (const file of files) {
+    let info;
+    try { info = await probeMedia(file); }
+    catch (e) { toast(`Your browser can't play "${file.name}". Try an MP4 (H.264) or WebM file.`); continue; }
+    if (!isFinite(info.duration) || info.duration <= 0) { toast(`Couldn't read the length of "${file.name}".`); continue; }
+    let med = S.pool.find(m => !m.url && m.kind !== 'demo' && m.name === file.name);
+    if (med) {
+      Object.assign(med, { file, url: info.url, kind: info.kind, w: info.w, h: info.h });
+      players.forEach((p, key) => { if (key.startsWith(med.id + ':')) { p.el.remove(); players.delete(key); } });
+      relinked++;
+    } else {
+      med = { id: uid(), name: file.name, kind: info.kind, duration: info.duration, w: info.w, h: info.h, file, url: info.url };
+      S.pool.push(med);
+      if (autoPlace) S.clips.push(newClip(med.id, 1, trackEnd(1), 0, med.duration));
+      added++;
+    }
+    S.poolSel = med.id;
+    const id = med.id;
+    computePeaks(file).then(p => { if (MEDIA(id) && p) { PEAKS.set(id, p); renderTimeline(); } });
+  }
+  if (!$('#projName').dataset.touched && S.pool.length && added === files.length && S.name === 'Demo project') {
+    S.name = S.pool[0].name.replace(/\.[^.]+$/, ''); $('#projName').value = S.name;
+  }
+  refreshAll();
+  if (relinked) toast(`Relinked ${relinked} file${relinked > 1 ? 's' : ''}.`);
+  else if (added) setStatus('#asrStatus', 'Ready. Choose a model and generate captions.', '');
+}
+$('#fileIn').addEventListener('change', e => { importFiles(e.target.files); e.target.value = ''; });
 $('#demoBtn').addEventListener('click', () => { loadDemo(); toast('Demo clip loaded.'); });
 const drop = $('#drop');
 ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => importFile(e.dataTransfer.files[0]));
+drop.addEventListener('drop', e => importFiles(e.dataTransfer.files));
 
 /* ---------------- 5. Transcriber ---------------- */
 const WORKER_SRC = `
@@ -1860,13 +2199,15 @@ function chunksToWords(chunks, mode) {
 }
 async function transcribe() {
   if (asrBusy) return;
-  if (!S.media) { toast('Import a video first.'); return; }
-  if (S.media.kind === 'demo') { toast('The demo clip already has captions. Import your own video to transcribe it.'); return; }
+  const med = MEDIA(S.poolSel) || mainMedia();
+  if (!med) { toast('Import a video first.'); return; }
+  if (med.kind === 'demo') { toast('The demo clip already has captions. Import your own video to transcribe it.'); return; }
+  if (!med.file) { toast(`"${med.name}" is offline. Import it again to relink it first.`); return; }
   asrBusy = true; $('#transcribeBtn').disabled = true; $('#asrBar').style.width = '0%';
   const files = {};
   try {
     setStatus('#asrStatus', 'Reading the audio track…', '');
-    const audio = await decodeAudio(S.media.file);
+    const audio = await decodeAudio(med.file);
     if (!worker) worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], { type: 'text/javascript' })), { type: 'module' });
     worker.onerror = (e) => { finishAsr(); setStatus('#asrStatus', downloadHint(e.message || 'Worker failed to start'), 'err'); };
     worker.onmessage = ({ data }) => {
@@ -1884,10 +2225,11 @@ async function transcribe() {
         finishAsr();
         if (!words.length) { setStatus('#asrStatus', 'No speech found in this clip.', 'err'); return; }
         const before = snapshot();
-        S.captions = buildCaptions(words, S.style); S.sel = null;
+        const caps = buildCaptions(words, S.style).map(c => Object.assign(c, { m: med.id }));
+        S.captions = S.captions.filter(c => c.m !== med.id).concat(caps); S.sel = null;
         pushUndo(before);
         refreshAll();
-        setStatus('#asrStatus', `Done. ${words.length} words in ${S.captions.length} captions${data.mode === 'segment' ? ' (word timing estimated)' : ''}.`, 'ok');
+        setStatus('#asrStatus', `Done. ${words.length} words in ${caps.length} captions${data.mode === 'segment' ? ' (word timing estimated)' : ''}.`, 'ok');
         showPage('edit');
       } else if (data.type === 'error') {
         finishAsr(); setStatus('#asrStatus', downloadHint(data.msg), 'err');
@@ -1938,7 +2280,12 @@ function syncStyleControls() {
   $('#st-upper').checked = st.upper; $('#st-box').checked = st.box; $('#st-bg').checked = st.bg;
   $('#st-anim').value = st.anim;
 }
-function resplit() { const w = allWords(); if (w.length) { S.captions = buildCaptions(w, S.style); S.sel = null; renderTimeline(); renderList(); renderEditor(); } }
+function resplit() {
+  const ms = [...new Set(S.captions.map(c => c.m))];
+  if (!ms.length) return;
+  S.captions = ms.flatMap(m => buildCaptions(S.captions.filter(c => c.m === m).sort((a, b) => a.s - b.s).flatMap(c => c.words), S.style).map(c => Object.assign(c, { m })));
+  S.sel = null; renderTimeline(); renderList(); renderEditor();
+}
 function afterStyle() {
   document.fonts && document.fonts.load(fontStr(S.style, 40)).catch(() => {});
   savePrefs();
@@ -1978,7 +2325,7 @@ $('#fps').addEventListener('change', e => { S.out.fps = Number(e.target.value); 
 
 let EXP = null;
 async function startRender() {
-  if (!S.media || !S.clips.length) { toast('There is nothing on the timeline to render.'); return; }
+  if (!S.clips.length) { toast('There is nothing on the timeline to render.'); return; }
   const useRange = $('#renderRange').checked && (S.mark.in != null || S.mark.out != null);
   const r0 = useRange ? (S.mark.in ?? 0) : 0, r1 = useRange ? (S.mark.out ?? tlEnd()) : tlEnd();
   if (r1 - r0 < 0.1) { setStatus('#renderStatus', 'The range to render is empty.', 'err'); return; }
@@ -1990,7 +2337,7 @@ async function startRender() {
   const ctx = c.getContext('2d');
   await (document.fonts ? document.fonts.load(fontStr(S.style, 40)).catch(() => {}) : null);
   const stream = c.captureStream(S.out.fps);
-  if (isReal()) { ensureAudio(); if (audioDest) audioDest.stream.getAudioTracks().forEach(tr => stream.addTrack(tr)); }
+  if (hasLiveMedia()) { ensureAudio(); if (audioDest) audioDest.stream.getAudioTracks().forEach(tr => stream.addTrack(tr)); }
   const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: H * W >= 1920 * 1080 ? 12e6 : 6e6 });
   const parts = [];
   rec.ondataavailable = e => { if (e.data && e.data.size) parts.push(e.data); };
@@ -2000,7 +2347,8 @@ async function startRender() {
   $('#renderBtn').disabled = true; $('#cancelBtn').hidden = false;
   setStatus('#renderStatus', 'Starting…', '');
   seek(r0);
-  if (isReal()) await new Promise(r => { const done = () => { video.removeEventListener('seeked', done); r(); }; video.addEventListener('seeked', done); syncVideo(r0); setTimeout(done, 800); });
+  syncPlayers(r0);
+  await Promise.all([...players.values()].filter(p => p.el.seeking).map(p => new Promise(r => { p.el.addEventListener('seeked', r, { once: true }); setTimeout(r, 800); })));
   drawFrame(ctx, W, H, r0);
   rec.start(250);
   play(1);
@@ -2042,9 +2390,9 @@ $('#vttBtn').addEventListener('click', () => S.captions.length ? download(new Bl
 $('#projName').addEventListener('input', e => { S.name = e.target.value; e.target.dataset.touched = '1'; });
 $('#saveBtn').addEventListener('click', () => {
   const data = {
-    app: 'wordcut', version: 2, name: S.name, savedAt: new Date().toISOString(),
-    media: S.media ? { name: S.media.name, kind: S.media.kind, duration: S.media.duration } : null,
-    style: S.style, out: S.out, captions: S.captions, clips: S.clips, markers: S.markers
+    app: 'wordcut', version: 3, name: S.name, savedAt: new Date().toISOString(),
+    pool: S.pool.map(({ id, name, kind, duration, w, h }) => ({ id, name, kind, duration, w, h })),
+    style: S.style, out: S.out, captions: S.captions, clips: S.clips, markers: S.markers, tracks: S.tracks
   };
   download(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }), (S.name || 'project') + '.wordcut.json');
 });
@@ -2055,19 +2403,37 @@ $('#openFile').addEventListener('change', async e => {
   try {
     const d = JSON.parse(await f.text());
     if (d.app !== 'wordcut' || !Array.isArray(d.captions)) throw new Error('not a project');
-    if (d.media && d.media.kind === 'demo') loadDemo();
+    // Files already loaded in this tab relink by name.
+    const loaded = S.pool.filter(m => m.url);
+    let pool = d.pool, clips = d.clips || [], captions = d.captions;
+    if (!Array.isArray(pool)) {
+      // Version 1 and 2 projects had one media file and one track.
+      const m = d.media || { name: 'Media', kind: 'video', duration: 0 };
+      const id = m.kind === 'demo' ? 'demo' : 'm1';
+      pool = [Object.assign({ id }, m)];
+      clips = clips.length ? clips : m.duration ? [{ id: uid(), start: 0, in: 0, out: m.duration }] : [];
+      clips = clips.map(c => Object.assign({ track: 1, m: id, vol: 1 }, c));
+      captions = captions.map(c => Object.assign({ m: id }, c));
+    }
+    if (pool.some(m => m.kind === 'demo')) loadDemo(); else resetProject();
+    const demo = S.pool.find(m => m.kind === 'demo');
+    S.pool = pool.map(m => {
+      if (m.kind === 'demo') return demo || m;
+      const have = loaded.find(x => x.name === m.name);
+      return have ? Object.assign({}, m, { file: have.file, url: have.url, w: have.w, h: have.h }) : Object.assign({}, m);
+    });
+    S.pool.forEach(m => { const have = loaded.find(x => x.name === m.name); if (have && PEAKS.has(have.id)) PEAKS.set(m.id, PEAKS.get(have.id)); });
+    S.poolSel = S.pool[0] ? S.pool[0].id : null;
     S.name = d.name || 'Untitled project'; $('#projName').value = S.name;
     S.style = Object.assign({}, BASE_STYLE, d.style); S.out = Object.assign(S.out, d.out);
-    S.captions = d.captions; S.sel = null; S.selClips = []; S.selGap = null;
-    // Version 1 projects had no edit: put the whole clip on the timeline.
-    const dur = (d.media && d.media.duration) || mediaDur();
-    S.clips = Array.isArray(d.clips) && d.clips.length ? d.clips : (dur ? [{ id: uid(), start: 0, in: 0, out: dur }] : []);
+    S.captions = captions; S.clips = clips; sortClips();
     S.markers = Array.isArray(d.markers) ? d.markers : [];
-    S.mark = { in: null, out: null };
+    if (d.tracks) S.tracks = d.tracks;
     clock.t = 0; resetHistory();
     refreshAll(); renderPresets(); syncStyleControls();
-    if (d.media && d.media.kind !== 'demo' && (!S.media || S.media.name !== d.media.name)) {
-      toast(`Project opened. Import "${d.media.name}" on the Media page to relink the footage.`);
+    const offline = S.pool.filter(m => !m.url && m.kind !== 'demo');
+    if (offline.length) {
+      toast(`Project opened. Import ${offline.map(m => `"${m.name}"`).join(', ')} on the Media page to relink ${offline.length > 1 ? 'them' : 'it'}.`);
       showPage('media');
     } else toast('Project opened.');
   } catch (err) { toast("That file isn't a Wordcut project."); }
