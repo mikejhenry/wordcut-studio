@@ -29,6 +29,7 @@
 html, body { height: 100%; }
 body { background: var(--bg); color: var(--fg); font-family: var(--ui); font-size: 14px; line-height: 1.45; }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -166,6 +167,18 @@ textarea { resize: vertical; min-height: 64px; line-height: 1.4; }
 .clipv .cn { overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 .clipa { background: #1f3a2b; border: 1px solid #36624a; }
 .clipa.nowave { background: #1f3a2b repeating-linear-gradient(90deg, #2f5a43 0 2px, transparent 2px 4px); }
+.clipv .fade, .clipa .fade { position: absolute; top: 0; bottom: 0; pointer-events: none; }
+.clipv .fade.in, .clipa .fade.in { left: 0; background: linear-gradient(to top right, rgba(0,0,0,0.55) 50%, transparent 50%); }
+.clipv .fade.out, .clipa .fade.out { right: 0; background: linear-gradient(to top left, rgba(0,0,0,0.55) 50%, transparent 50%); }
+.clipv .fh { position: absolute; top: 0; width: 9px; height: 9px; background: #fff; opacity: 0; cursor: ew-resize; z-index: 2; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.clipv .fh[data-fade=l] { left: 8px; }
+.clipv .fh[data-fade=r] { right: 8px; }
+.clipv:hover .fh, .clipv.sel .fh { opacity: 0.85; }
+.tl-scroll[data-tool=blade] .fh { display: none; }
+.xdis { position: absolute; top: 3px; bottom: 3px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.7); background: linear-gradient(to right, rgba(45,74,120,0.9), rgba(240,168,58,0.55)); z-index: 2; pointer-events: none; }
+.xdis::after { content: "⨯"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; color: #fff; }
+.xdis.bad { border-style: dashed; border-color: var(--rec); background: rgba(239,91,79,0.25); }
+.clipv.img, .clipv.t2.img { background: #5b4a24; border-color: #8f7640; }
 .clipv.t2 { background: #4a3a78; border-color: #6c58a8; }
 .clipv.off { background: #5a1f22; border-color: #93393e; color: #ffd0cc; }
 .clipv.dim, .clipa.dim { opacity: 0.4; }
@@ -271,12 +284,12 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
           <p class="lede">Bring in your clips, then let the on-device speech model write timed captions for every word.</p>
         </div>
         <div class="drop" id="drop">
-          <p>Drop video or audio files here</p>
+          <p>Drop video, audio or image files here</p>
           <div class="row" style="justify-content:center">
             <label class="btn primary" for="fileIn">Import media</label>
             <button class="btn" id="demoBtn">Load demo clip</button>
           </div>
-          <input type="file" id="fileIn" accept="video/*,audio/*" multiple hidden>
+          <input type="file" id="fileIn" accept="video/*,audio/*,image/*" multiple hidden>
         </div>
         <div class="group">
           <span class="label">Media pool</span>
@@ -408,6 +421,9 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
           <div class="field"><span>Frame rate</span>
             <select id="fps"><option value="30">30 fps</option><option value="60">60 fps</option><option value="24">24 fps</option></select>
           </div>
+          <div class="field"><span>Export</span>
+            <select id="engine"><option value="fast">Fast, frame-accurate</option><option value="live">Real time (compatibility)</option></select>
+          </div>
           <div class="chips" id="outChips"></div>
           <label class="check" id="renderRangeRow"><input type="checkbox" id="renderRange" disabled> Only render the In to Out range</label>
         </div>
@@ -420,7 +436,7 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
           <div class="progress" aria-hidden="true"><div id="renderBar"></div></div>
           <div class="status" id="renderStatus" role="status"></div>
           <div class="result" id="result" hidden></div>
-          <p class="note">This prototype records in real time, so a 60-second clip takes about 60 seconds. Keep the tab in view while it renders. Each cut can show a brief hold while the browser seeks to the next shot. The native apps will encode faster than real time and cut cleanly.</p>
+          <p class="note">Fast export builds the video frame by frame with the browser's own encoder, so every cut and dissolve lands on the exact frame. It usually runs faster than real time and gives an MP4 where the browser can encode H.264, otherwise WebM. Sped-up or slowed-down clips change pitch in fast export. Real time mode records the preview as it plays: use it if fast export fails, and keep the tab in view.</p>
         </div>
         <div class="group">
           <span class="label">Caption files</span>
@@ -512,6 +528,8 @@ kbd { font: 500 11.5px var(--mono); background: var(--bg); border: 1px solid var
     <dt><kbd>Delete</kbd></dt><dd>Ripple delete the selected clips, gap, or In to Out range</dd>
     <dt><kbd>Backspace</kbd></dt><dd>Delete and leave a gap</dd>
     <dt><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>,</kbd> <kbd>.</kbd></dt><dd>Swap the selected clip with the one before / after</dd>
+    <dt><kbd>Ctrl</kbd>+<kbd>T</kbd></dt><dd>Add a 1 second cross dissolve at the cut nearest the playhead</dd>
+    <dt>Drag the ▾ in a clip's top corner</dt><dd>Fade the clip in or out</dd>
     <dt><kbd>I</kbd> <kbd>O</kbd></dt><dd>Mark In / Out (Alt+I, Alt+O, Alt+X clear them)</dd>
     <dt><kbd>M</kbd></dt><dd>Add a marker</dd>
     <dt><kbd>S</kbd></dt><dd>Split the caption at the playhead</dd>
@@ -585,7 +603,7 @@ const S = {
   poolSel: null,         // selected pool item id
   captions: [],          // [{ id, m, s, e, words: [{ t, s, e }] }]  s/e are source time in media m
   style: presetStyle('punch'),
-  out: { aspect: '9:16', fit: 'cover', quality: 1080, fps: 30 },
+  out: { aspect: '9:16', fit: 'cover', quality: 1080, fps: 30, engine: 'fast' },
   // Edit decision list: each clip shows media m from [in, out) at timeline position `start`
   // on track 1 or 2. Each track's picture (V) and sound (A) are linked, so one clip drives both.
   clips: [],             // [{ id, track, m, start, in, out, vol, fx?: { scale, x, y, opacity } }]
@@ -688,7 +706,7 @@ function captionCues() {
   for (const k of S.clips) for (const c of S.captions) {
     if (c.m !== k.m) continue;
     const a = Math.max(c.s, k.in), b = Math.min(c.e, k.out);
-    if (b - a >= 0.05) cues.push({ s: k.start + a - k.in, e: k.start + b - k.in, text: capText(c), id: c.id });
+    if (b - a >= 0.05) cues.push({ s: tlAt(k, a), e: tlAt(k, b), text: capText(c), id: c.id });
   }
   cues.sort((x, y) => x.s - y.s);
   const out = [];
@@ -711,9 +729,16 @@ const TRACKS = [1, 2];
 const FX0 = { scale: 100, x: 0, y: 0, opacity: 1 };
 const qf = t => Math.round(t * TC_FPS) / TC_FPS;           // snap to the frame grid
 const MEDIA = id => S.pool.find(m => m.id === id) || null;
-const srcDur = c => { const m = MEDIA(c.m); return m ? m.duration : Infinity; };
-const clipLen = c => c.out - c.in;
-const clipEnd = c => c.start + c.out - c.in;
+// Stills have no length of their own: they can be stretched as far as you like.
+// Image clips start at source time IMG_IN so they can also be extended to the left.
+const IMG_IN = 3600, IMG_LEN = 5;
+const srcDur = c => { const m = MEDIA(c.m); return !m || m.kind === 'image' ? Infinity : m.duration; };
+// Speed: a clip at 200% plays its source twice as fast, so it is half as long on the timeline.
+const spd = c => c.speed || 1;
+const clipLen = c => (c.out - c.in) / spd(c);              // length on the timeline
+const clipEnd = c => c.start + clipLen(c);
+const srcAt = (c, t) => c.in + (t - c.start) * spd(c);     // timeline time -> source time
+const tlAt = (c, src) => c.start + (src - c.in) / spd(c);  // source time -> timeline time
 const sortClips = () => S.clips.sort((a, b) => a.start - b.start || a.track - b.track);
 const tlEnd = () => S.clips.reduce((m, c) => Math.max(m, clipEnd(c)), 0);
 const trackEnd = k => S.clips.reduce((m, c) => c.track === k ? Math.max(m, clipEnd(c)) : m, 0);
@@ -738,7 +763,7 @@ function captionAtTl(t) {
   for (const k of [2, 1]) {
     const c = clipAt(t, k);
     if (!c) continue;
-    const src = c.in + (t - c.start);
+    const src = srcAt(c, t);
     for (const cap of S.captions) if (cap.m === c.m && src >= cap.s && src < cap.e) return { cap, src };
   }
   return null;
@@ -749,7 +774,7 @@ function capTl(cap) {
   for (const k of S.clips) {
     if (k.m !== cap.m) continue;
     const a = Math.max(cap.s, k.in), b = Math.min(cap.e, k.out);
-    if (b - a > 0.01) { const t = k.start + a - k.in; if (best == null || t < best) best = t; }
+    if (b - a > 0.01) { const t = tlAt(k, a); if (best == null || t < best) best = t; }
   }
   return best;
 }
@@ -769,11 +794,97 @@ function splitClipAt(t, min, k) {
   min = min || EPS * 10;
   const c = clipAt(t, k || 1);
   if (!c || t - c.start < min || clipEnd(c) - t < min) return false;
-  const cut = c.in + (t - c.start);
+  const cut = srcAt(c, t);
   const b = Object.assign(JSON.parse(JSON.stringify(c)), { id: uid(), start: t, in: cut });
   c.out = cut;
+  // A plain cut: the left part keeps the fade in and incoming dissolve, the right part keeps the fade out.
+  delete b.fadeIn; delete b.xd; delete c.fadeOut;
   S.clips.push(b); sortClips();
   return b;
+}
+/* Transitions.
+   Fades: c.fadeIn / c.fadeOut (seconds) ramp the picture from black (or from the track below)
+   and the sound from silence. Cross dissolve: c.xd (seconds) on the right-hand clip of a cut,
+   centered on the cut. It plays the outgoing clip past its out point and the incoming clip
+   before its in point, so it is limited by how much spare media ("handles") each side has. */
+function prevTouching(c) {
+  let best = null;
+  for (const x of S.clips) if (x !== c && x.track === c.track && Math.abs(clipEnd(x) - c.start) < 0.002) best = x;
+  return best;
+}
+function nextTouching(c) {
+  const e = clipEnd(c);
+  for (const x of S.clips) if (x !== c && x.track === c.track && Math.abs(x.start - e) < 0.002) return x;
+  return null;
+}
+// Effective dissolve length into clip b (0 when there is no touching clip or no spare media).
+function xdur(b) {
+  if (!b || !b.xd) return 0;
+  const a = prevTouching(b);
+  if (!a) return 0;
+  const tail = (srcDur(a) - a.out) / spd(a), head = b.in / spd(b);
+  return Math.max(0, Math.min(b.xd, clipLen(a), clipLen(b), 2 * tail, 2 * head));
+}
+function fadeMult(c, t) {
+  let m = 1;
+  if (c.fadeIn) m = Math.min(m, clamp((t - c.start) / c.fadeIn, 0, 1));
+  if (c.fadeOut) m = Math.min(m, clamp((clipEnd(c) - t) / c.fadeOut, 0, 1));
+  return m;
+}
+// Two players per media per track ("a" / "b"), alternating clip by clip, so the next clip can be
+// cued up while the current one plays and a dissolve can show both at once.
+function slotOf(c) { const row = onTrack(c.track); return row.indexOf(c) % 2 ? 'b' : 'a'; }
+// Everything visible / audible on track k at time t, bottom to top: { c, src, a: picture alpha, g: sound gain, slot }.
+function layersAt(t, k) {
+  const c = clipAt(t, k);
+  if (!c) {
+    return [];
+  }
+  const f = fadeMult(c, t), out = [];
+  const n = nextTouching(c), dn = xdur(n);
+  const dp = xdur(c), p = dp ? prevTouching(c) : null;
+  if (n && dn && t >= n.start - dn / 2) {             // dissolving out into the next clip
+    const q = (t - (n.start - dn / 2)) / dn;
+    out.push({ c, src: srcAt(c, t), a: f, g: f * (1 - q), slot: slotOf(c), primary: true });
+    out.push({ c: n, src: srcAt(n, t), a: q * fadeMult(n, t), g: q, slot: slotOf(n) });
+  } else if (p && t < c.start + dp / 2) {            // dissolving in from the previous clip
+    const q = (t - (c.start - dp / 2)) / dp;
+    out.push({ c: p, src: srcAt(p, t), a: 1, g: 1 - q, slot: slotOf(p) });
+    out.push({ c, src: srcAt(c, t), a: q * f, g: q * f, slot: slotOf(c), primary: true });
+  } else out.push({ c, src: srcAt(c, t), a: f, g: f, slot: slotOf(c), primary: true });
+  return out;
+}
+// Change a clip's speed. Its length changes, and later clips ripple to follow (all tracks when on V1).
+function setSpeed(c, v) {
+  const oldEnd = clipEnd(c);
+  if (v === 1) delete c.speed; else c.speed = v;
+  const d = clipEnd(c) - oldEnd;
+  for (const k of rippleTracks(c.track)) {
+    const dd = d < 0 && k !== c.track ? -Math.min(-d, shiftRoom(k, oldEnd, c)) : d;
+    S.clips.forEach(x => { if (x !== c && x.track === k && x.start >= oldEnd - 0.002) x.start += dd; });
+  }
+  sortClips();
+}
+// Ctrl+T: add a cross dissolve at the cut nearest the playhead (on the selected clip's track, else V1).
+function addDissolve(len) {
+  const sel = S.clips.find(c => S.selClips.includes(c.id));
+  const k = sel ? sel.track : 1;
+  let best = null;
+  for (const b of onTrack(k)) {
+    if (!prevTouching(b)) continue;
+    if (!best || Math.abs(b.start - clock.t) < Math.abs(best.start - clock.t)) best = b;
+  }
+  if (!best) { toast('Put two clips next to each other to add a dissolve between them.'); return; }
+  edit(() => { best.xd = len; });
+  if (!xdur(best)) toast('These clips have no spare footage past the cut, so the dissolve has nothing to blend. Trim them shorter first.');
+}
+// Largest leftward shift allowed for clips at or after `from` on track k before they hit clips that stay put.
+function shiftRoom(k, from, self) {
+  const stay = onTrack(k).filter(x => x !== self && x.start < from - 0.002);
+  const moving = onTrack(k).filter(x => x !== self && x.start >= from - 0.002);
+  if (!moving.length) return Infinity;
+  const first = Math.min(...moving.map(x => x.start)), wall = stay.reduce((m, x) => Math.max(m, clipEnd(x)), 0);
+  return Math.max(0, first - wall);
 }
 // Lift: remove everything between a and b on the given tracks, leaving a gap.
 function liftRange(a, b, tracks) {
@@ -801,10 +912,10 @@ function rippleRange(a, b, tracks) {
 function placeMedia(mode, id, t, k) {
   const med = MEDIA(id);
   if (!med) return null;
-  const len = med.duration;
+  const img = med.kind === 'image', len = img ? IMG_LEN : med.duration;
   k = mode === 'top' ? 2 : mode === 'overwrite' ? (k || 1) : 1;
   t = mode === 'append' ? trackEnd(1) : qf(Math.max(0, t));
-  const c = newClip(id, k, t, 0, len);
+  const c = img ? newClip(id, k, t, IMG_IN, IMG_IN + len) : newClip(id, k, t, 0, len);
   if (mode === 'insert') {
     TRACKS.forEach(tk => splitClipAt(t, 0, tk));
     S.clips.forEach(x => { if (x.start >= t - EPS) x.start += len; });
@@ -838,8 +949,8 @@ function cutPauses(minGap, pad) {
     if (!sp) continue;
     let pos = c.in;
     const keep = sp.map(([a, b]) => [Math.max(a, c.in), Math.min(b, c.out)]).filter(([a, b]) => b - a >= MIN_CLIP);
-    for (const [a, b] of keep) { if (a - pos >= MIN_CLIP) cuts.push([c.start + pos - c.in, c.start + a - c.in]); pos = b; }
-    if (c.out - pos >= MIN_CLIP) cuts.push([c.start + pos - c.in, clipEnd(c)]);
+    for (const [a, b] of keep) { if (a - pos >= MIN_CLIP) cuts.push([tlAt(c, pos), tlAt(c, a)]); pos = b; }
+    if (c.out - pos >= MIN_CLIP) cuts.push([tlAt(c, pos), clipEnd(c)]);
   }
   cuts.sort((x, y) => y[0] - x[0]);
   let removed = 0;
@@ -955,6 +1066,10 @@ function drawOffline(ctx, W, H, name) {
   ctx.font = `400 ${fs * 0.55}px system-ui, sans-serif`;
   ctx.fillText(name, W / 2, H / 2 + fs * 0.5, W * 0.9);
 }
+const imgOf = med => {
+  if (!med.img || med.img.dataset.url !== med.url) { med.img = new Image(); med.img.dataset.url = med.url; med.img.src = med.url; }
+  return med.img;
+};
 function drawVideo(ctx, v, W, H, fit) {
   const vw = v.videoWidth, vh = v.videoHeight;
   if (fit === 'contain') {
@@ -966,23 +1081,28 @@ function drawVideo(ctx, v, W, H, fit) {
   } else drawFit(ctx, v, vw, vh, W, H, 'cover');
 }
 // Draw one clip's picture, with its zoom / position / opacity, into the frame.
-function drawClipPicture(ctx, W, H, c, k, src) {
-  const med = MEDIA(c.m);
-  if (!med || (med.kind === 'audio' && k !== 1)) return;   // sound only
+function drawClipPicture(ctx, W, H, L, k) {
+  const c = L.c, src = L.src, med = MEDIA(c.m);
+  if (!med || (med.kind === 'audio' && k !== 1) || L.a <= 0) return;   // sound only, or faded out
   const fx = c.fx || FX0, s = fx.scale / 100;
   ctx.save();
-  ctx.globalAlpha = clamp(fx.opacity, 0, 1);
+  ctx.globalAlpha = clamp(fx.opacity * L.a, 0, 1);
   ctx.translate(W / 2 + fx.x / 100 * W, H / 2 + fx.y / 100 * H);
   ctx.scale(s, s);
   ctx.translate(-W / 2, -H / 2);
   ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.clip();
   if (med.kind === 'demo' || med.kind === 'audio') drawDemoBg(ctx, W, H, src);
   else if (!med.url) drawOffline(ctx, W, H, med.name);
+  else if (med.kind === 'image') {
+    const im = imgOf(med);
+    // On V2 a still keeps its whole frame (logos, lower thirds); on V1 it follows the Deliver framing.
+    if (im.complete && im.naturalWidth) drawFit(ctx, im, im.naturalWidth, im.naturalHeight, W, H, k === 1 ? S.out.fit === 'contain' ? 'contain' : 'cover' : 'contain');
+  }
   else {
-    const p = players.get(med.id + ':' + k), v = p && p.el;
+    const p = players.get(`${med.id}:${k}:${L.slot}`), v = p && p.el;
     if (v && v.readyState >= 2 && v.videoWidth) drawVideo(ctx, v, W, H, k === 1 ? S.out.fit : 'cover');
   }
-  if (s < 1) { ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 3 / s; ctx.strokeRect(0, 0, W, H); }
+  if (s < 1 && med.kind !== 'image') { ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 3 / s; ctx.strokeRect(0, 0, W, H); }
   ctx.restore();
 }
 function roundRect(ctx, x, y, w, h, r) {
@@ -1074,8 +1194,7 @@ function drawFrame(ctx, W, H, t) {
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);   // shows through gaps
   for (const k of TRACKS) {                           // V1 first, V2 on top
     if (S.tracks[k].hide) continue;
-    const c = clipAt(t, k);
-    if (c) drawClipPicture(ctx, W, H, c, k, c.in + (t - c.start));
+    for (const L of layersAt(t, k)) drawClipPicture(ctx, W, H, L, k);
   }
   const hit = captionAtTl(t);
   if (hit) drawCaption(ctx, hit.cap, W, H, hit.src, S.style);
@@ -1111,10 +1230,10 @@ function ensureAudio() {
   if (AC.state === 'suspended') AC.resume();
   players.forEach(connectPlayer);
 }
-function playerFor(id, k) {
+function playerFor(id, k, slot) {
   const med = MEDIA(id);
   if (!med || !med.url) return null;
-  const key = id + ':' + k;
+  const key = `${id}:${k}:${slot || 'a'}`;
   let p = players.get(key);
   if (!p) {
     const el = document.createElement('video');
@@ -1131,7 +1250,7 @@ function setVol(p, v) {
   v = clamp(v, 0, 1);
   if (p.gain) p.gain.gain.value = v; else p.el.volume = v;
 }
-const isLive = med => med && med.url && med.kind !== 'demo';
+const isLive = med => !!(med && med.url && (med.kind === 'video' || med.kind === 'audio'));
 const hasLiveMedia = () => S.clips.some(c => isLive(MEDIA(c.m)));
 const isPlaying = () => clock.playing;
 function play(rate) {
@@ -1167,32 +1286,48 @@ function setPlayIcon() {
 // The lowest track with a playable video under t drives the clock.
 function masterAt(t) {
   for (const k of TRACKS) {
-    const c = clipAt(t, k);
-    if (c && isLive(MEDIA(c.m))) return { c, k, p: playerFor(c.m, k) };
+    const L = layersAt(t, k).find(x => x.primary);
+    if (L && isLive(MEDIA(L.c.m))) return { c: L.c, k, p: playerFor(L.c.m, k, L.slot) };
   }
   return null;
 }
 function syncPlayers(t) {
+  if (FAST) return;   // the frame-accurate exporter drives the players itself
   const active = new Set();
   const fwd = clock.playing && clock.rate > 0 && !drag;
   const master = masterAt(t);
   for (const k of TRACKS) {
-    const c = clipAt(t, k);
-    if (!c || !isLive(MEDIA(c.m))) continue;
-    const p = playerFor(c.m, k);
-    if (!p) continue;
-    active.add(p);
-    const el = p.el, want = c.in + (t - c.start);
-    setVol(p, S.tracks[k].mute ? 0 : (c.vol ?? 1));
+    for (const L of layersAt(t, k)) {
+      const c = L.c;
+      if (!isLive(MEDIA(c.m))) continue;
+      const p = playerFor(c.m, k, L.slot);
+      if (!p) continue;
+      active.add(p);
+      const el = p.el, want = L.src;
+      setVol(p, S.tracks[k].mute ? 0 : (c.vol ?? 1) * L.g);
+      if (fwd) {
+        const rate = clock.rate * spd(c);
+        if (el.playbackRate !== rate) el.playbackRate = rate;
+        if (p.cue !== c.id) { p.cue = c.id; if (Math.abs(el.currentTime - want) > 0.05) el.currentTime = want; }
+        else if (!(master && master.p === p) && !el.seeking && Math.abs(el.currentTime - want) > 0.2) el.currentTime = want;
+        if (el.paused) el.play().catch(() => { pause(); toast('Playback was blocked. Press play again.'); });
+      } else {
+        p.cue = null;
+        if (!el.paused) el.pause();
+        if (!el.seeking && Math.abs(el.currentTime - want) > 0.4 / TC_FPS) el.currentTime = want;
+      }
+    }
+    // Cue up the next clip on this track while the current one plays, so the cut is clean.
     if (fwd) {
-      if (el.playbackRate !== clock.rate) el.playbackRate = clock.rate;
-      if (p.cue !== c.id) { p.cue = c.id; if (Math.abs(el.currentTime - want) > 0.05) el.currentTime = want; }
-      else if (!(master && master.p === p) && !el.seeking && Math.abs(el.currentTime - want) > 0.2) el.currentTime = want;
-      if (el.paused) el.play().catch(() => { pause(); toast('Playback was blocked. Press play again.'); });
-    } else {
-      p.cue = null;
-      if (!el.paused) el.pause();
-      if (!el.seeking && Math.abs(el.currentTime - want) > 0.4 / TC_FPS) el.currentTime = want;
+      const n = S.clips.find(x => x.track === k && x.start > t + EPS && x.start - t < 1.5);
+      if (n && isLive(MEDIA(n.m))) {
+        const p = playerFor(n.m, k, slotOf(n)), src = srcAt(n, n.start - xdur(n) / 2);
+        if (p && !active.has(p)) {
+          active.add(p);
+          if (!p.el.paused) p.el.pause();
+          if (!p.el.seeking && Math.abs(p.el.currentTime - src) > 0.02) p.el.currentTime = src;
+        }
+      }
     }
   }
   players.forEach(p => { if (!active.has(p)) { p.cue = null; if (!p.el.paused) p.el.pause(); } });
@@ -1204,7 +1339,7 @@ function advance(dt) {
   if (m && m.p) {
     const el = m.p.el, c = m.c;
     if (m.p.cue === c.id && !el.paused && !el.seeking && el.readyState >= 2) {
-      const vt = c.start + (el.currentTime - c.in);
+      const vt = tlAt(c, el.currentTime);
       t = vt >= t - 0.25 && vt <= t + 0.5 ? Math.max(t, vt) : t + dt * clock.rate;
       if (el.currentTime >= c.out - 0.002 || el.ended) t = Math.max(t, clipEnd(c));
     }
@@ -1313,7 +1448,7 @@ function showPage(p) {
 $$('.pages button').forEach(b => b.addEventListener('click', () => showPage(b.dataset.page)));
 
 function mediaRes(m) {
-  return m.kind === 'demo' ? 'Generated · 1080×1920' : m.kind === 'audio' ? 'Audio only' : m.w ? `${m.w}×${m.h}` : 'Video';
+  return m.kind === 'demo' ? 'Generated · 1080×1920' : m.kind === 'audio' ? 'Audio only' : m.kind === 'image' ? `Image${m.w ? ` · ${m.w}×${m.h}` : ''}` : m.w ? `${m.w}×${m.h}` : 'Video';
 }
 function renderPool() {
   const pool = $('#pool');
@@ -1326,9 +1461,10 @@ function renderPool() {
       el.className = 'clip' + (m.id === S.poolSel ? ' on' : '') + (!m.url && m.kind !== 'demo' ? ' offline' : '');
       el.draggable = true; el.tabIndex = 0; el.dataset.mid = m.id;
       el.setAttribute('role', 'button'); el.setAttribute('aria-pressed', String(m.id === S.poolSel));
-      el.innerHTML = `<div class="thumb">${m.kind === 'audio' ? 'AUDIO' : m.kind === 'demo' ? 'DEMO' : 'VIDEO'}</div>
-        <div style="min-width:0"><div class="name"></div><div class="meta">${tc(m.duration)} · ${mediaRes(m)}${!m.url && m.kind !== 'demo' ? ' · <b class="off">offline</b>' : ''}<br>${uses ? `On the timeline ${uses}×` : 'Not used yet'}${caps ? ` · ${caps} captions` : ''}</div></div>`;
+      el.innerHTML = `<div class="thumb">${m.kind.toUpperCase()}</div>
+        <div style="min-width:0"><div class="name"></div><div class="meta">${m.kind === 'image' ? 'Still' : tc(m.duration)} · ${mediaRes(m)}${!m.url && m.kind !== 'demo' ? ' · <b class="off">offline</b>' : ''}<br>${uses ? `On the timeline ${uses}×` : 'Not used yet'}${caps ? ` · ${caps} captions` : ''}</div></div>`;
       el.querySelector('.name').textContent = m.name;
+      if (m.kind === 'image' && m.url) { const th = el.querySelector('.thumb'); th.textContent = ''; th.style.background = `center / cover no-repeat url("${m.url}")`; }
       el.title = 'Drag onto the timeline, or select it and use the buttons below';
       el.addEventListener('click', () => { S.poolSel = m.id; renderPool(); });
       el.addEventListener('keydown', e => { if (e.key === 'Enter') { S.poolSel = m.id; renderPool(); } });
@@ -1348,7 +1484,7 @@ function drawWave(cv, c, pxW) {
   cv.width = w; cv.height = h;
   const pk = PEAKS.get(c.m);
   if (!pk) return;
-  const g = cv.getContext('2d'), dur = clipLen(c), v = c.vol ?? 1;
+  const g = cv.getContext('2d'), dur = c.out - c.in, v = c.vol ?? 1;
   g.fillStyle = '#7fd3a2';
   for (let x = 0; x < w; x++) {
     const a = c.in + x / w * dur, b = c.in + (x + 1) / w * dur;
@@ -1396,19 +1532,32 @@ function renderTimeline() {
     const base = document.createElement('div');
     base.dataset.id = c.id;
     base.style.left = (c.start * pps) + 'px'; base.style.width = w + 'px';
-    base.title = `${name}\nSource ${tc(c.in)} – ${tc(c.out)}`;
+    base.title = med && med.kind === 'image' ? `${name}\nStill image` : `${name}\nSource ${tc(c.in)} – ${tc(c.out)}`;
+    const fades = `${c.fadeIn ? `<i class="fade in" style="width:${c.fadeIn * pps}px"></i>` : ''}${c.fadeOut ? `<i class="fade out" style="width:${c.fadeOut * pps}px"></i>` : ''}`;
     if (!med || med.kind !== 'audio') {
       const ve = base.cloneNode(false);
-      ve.className = 'clipv' + (sel ? ' sel' : '') + (off ? ' off' : '') + (c.track === 2 ? ' t2' : '') + (S.tracks[c.track].hide ? ' dim' : '');
-      ve.innerHTML = '<i class="h" data-edge="l"></i><span class="cn"></span><i class="h" data-edge="r"></i>';
-      ve.querySelector('.cn').textContent = (off ? 'Offline · ' : '') + name;
+      ve.className = 'clipv' + (sel ? ' sel' : '') + (off ? ' off' : '') + (c.track === 2 ? ' t2' : '') + (med && med.kind === 'image' ? ' img' : '') + (S.tracks[c.track].hide ? ' dim' : '');
+      ve.innerHTML = fades + '<i class="h" data-edge="l"></i><span class="cn"></span><i class="h" data-edge="r"></i><i class="fh" data-fade="l" title="Drag to fade in"></i><i class="fh" data-fade="r" title="Drag to fade out"></i>';
+      ve.querySelector('.cn').textContent = (off ? 'Offline · ' : '') + (spd(c) !== 1 ? `${Math.round(spd(c) * 100)}% · ` : '') + name;
       rows['v' + c.track].appendChild(ve);
     }
+    if (med && med.kind === 'image') continue;   // stills have no sound
     const ae = base.cloneNode(false);
     ae.className = 'clipa' + (sel ? ' sel' : '') + (PEAKS.get(c.m) ? '' : ' nowave') + (S.tracks[c.track].mute || (c.vol ?? 1) === 0 ? ' dim' : '');
-    ae.innerHTML = '<canvas></canvas><i class="h" data-edge="l"></i><i class="h" data-edge="r"></i>';
+    ae.innerHTML = '<canvas></canvas>' + fades + '<i class="h" data-edge="l"></i><i class="h" data-edge="r"></i>';
     drawWave(ae.querySelector('canvas'), c, w);
     rows['a' + c.track].appendChild(ae);
+  }
+  // Cross dissolves sit centered on the cut.
+  for (const c of S.clips) {
+    const d = xdur(c);
+    if (!c.xd) continue;
+    const x = document.createElement('div');
+    x.className = 'xdis' + (d ? '' : ' bad');
+    x.dataset.id = c.id;
+    x.style.left = ((c.start - Math.max(d, 0.3) / 2) * pps) + 'px'; x.style.width = (Math.max(d, 0.3) * pps) + 'px';
+    x.title = d ? `Cross dissolve · ${d.toFixed(2)}s` : 'Cross dissolve has no spare footage to blend. Trim the clips shorter.';
+    rows['v' + c.track].appendChild(x);
   }
   if (S.selGap) {
     const g = document.createElement('div');
@@ -1427,8 +1576,8 @@ function renderTimeline() {
       if (b - a < 0.01) continue;
       const el = document.createElement('div');
       el.className = 'cap' + (c.id === S.sel ? ' sel' : '');
-      el.style.left = ((k.start + a - k.in) * pps) + 'px';
-      el.style.width = Math.max(3, (b - a) * pps - 2) + 'px';
+      el.style.left = (tlAt(k, a) * pps) + 'px';
+      el.style.width = Math.max(3, (b - a) / spd(k) * pps - 2) + 'px';
       el.textContent = capText(c);
       el.dataset.id = c.id;
       el.title = capText(c);
@@ -1492,13 +1641,22 @@ function renderClipBox() {
   let h = '<span class="label">Timeline</span>';
   if (sel.length === 1) {
     const c = sel[0], med = MEDIA(c.m), fx = c.fx || FX0;
-    const hasPic = med && med.kind !== 'audio', hasSound = med && med.kind !== 'demo';
+    const isImg = med && med.kind === 'image';
+    const hasPic = med && med.kind !== 'audio', hasSound = med && med.kind !== 'demo' && !isImg;
+    const pv = prevTouching(c), sp = Math.round(spd(c) * 100);
+    const speeds = [25, 50, 75, 100, 125, 150, 200, 300, 400];
+    if (!speeds.includes(sp)) speeds.push(sp), speeds.sort((a, b) => a - b);
     h += `<div class="kv"><span>Clip</span><b class="clipname"></b>
-      <span>Track</span><b>V${c.track} / A${c.track}</b>
+      <span>Track</span><b>V${c.track}${isImg ? '' : ` / A${c.track}`}</b>
       <span>Position</span><b class="tc">${tc(c.start)} – ${tc(clipEnd(c))}</b>
-      <span>Source in</span><b class="tc">${tc(c.in)}</b>
-      <span>Source out</span><b class="tc">${tc(c.out)}</b>
+      ${isImg ? '' : `<span>Source in</span><b class="tc">${tc(c.in)}</b>
+      <span>Source out</span><b class="tc">${tc(c.out)}</b>`}
       <span>Duration</span><b class="tc">${tc(clipLen(c))}</b></div>
+      ${isImg ? '' : `<div class="field"><span>Speed</span><select id="cSpeed" title="Changing speed changes the clip's length, and later clips move to follow">${speeds.map(v => `<option value="${v}"${v === sp ? ' selected' : ''}>${v}%${v === 100 ? ' (normal)' : ''}</option>`).join('')}</select></div>`}
+      <div class="field"><span>Fade in</span><div class="with-val"><input type="range" id="cFin" min="0" max="3" step="0.1" value="${c.fadeIn || 0}"><output id="o-cFin">${(c.fadeIn || 0).toFixed(1)}s</output></div></div>
+      <div class="field"><span>Fade out</span><div class="with-val"><input type="range" id="cFout" min="0" max="3" step="0.1" value="${c.fadeOut || 0}"><output id="o-cFout">${(c.fadeOut || 0).toFixed(1)}s</output></div></div>
+      <div class="field"><span>Dissolve in</span><div class="with-val"><input type="range" id="cXd" min="0" max="2" step="0.1" value="${c.xd || 0}"${pv ? '' : ' disabled title="Only when a clip sits right before this one"'}><output id="o-cXd">${pv ? (c.xd || 0).toFixed(1) + 's' : '—'}</output></div></div>
+      ${c.xd && !xdur(c) ? '<p class="note">This dissolve has no spare footage to blend on one side of the cut. Trim the clips shorter to make room.</p>' : ''}
       ${hasSound ? `<div class="field"><span>Volume</span><div class="with-val"><input type="range" id="cVol" min="0" max="100" value="${Math.round((c.vol ?? 1) * 100)}"><output id="o-cVol">${Math.round((c.vol ?? 1) * 100)}%</output></div></div>` : ''}
       ${hasPic ? `<div class="field"><span>Zoom</span><div class="with-val"><input type="range" id="cScale" min="10" max="200" value="${fx.scale}"><output id="o-cScale">${fx.scale}%</output></div></div>
       <div class="field"><span>Position X</span><div class="with-val"><input type="range" id="cX" min="-50" max="50" value="${fx.x}"><output id="o-cX">${fx.x}</output></div></div>
@@ -1547,6 +1705,12 @@ function renderClipBox() {
     const fx = () => (c.fx = c.fx || Object.assign({}, FX0));
     const live = (id, apply, fmt) => { const el = $('#' + id); if (el) bindLive(el, v => { apply(v); $('#o-' + id).textContent = fmt(v); }); };
     live('cVol', v => { c.vol = v / 100; }, v => v + '%');
+    const setOpt = (key, v) => { if (v > 0) c[key] = v; else delete c[key]; };
+    live('cFin', v => setOpt('fadeIn', Math.min(v, clipLen(c))), v => v.toFixed(1) + 's');
+    live('cFout', v => setOpt('fadeOut', Math.min(v, clipLen(c))), v => v.toFixed(1) + 's');
+    live('cXd', v => setOpt('xd', v), v => v.toFixed(1) + 's');
+    const spSel = $('#cSpeed');
+    if (spSel) spSel.addEventListener('change', () => edit(() => setSpeed(c, +spSel.value / 100)));
     live('cScale', v => { fx().scale = v; }, v => v + '%');
     live('cX', v => { fx().x = v; }, v => String(v));
     live('cY', v => { fx().y = v; }, v => String(v));
@@ -1799,14 +1963,6 @@ function freeSlot(k, len, want, self) {
   consider(lo, Infinity);
   return best;
 }
-// Largest leftward shift allowed for clips at or after `from` on track k before they hit clips that stay put.
-function shiftRoom(k, from, self) {
-  const stay = onTrack(k).filter(x => x !== self && x.start < from - 0.002);
-  const moving = onTrack(k).filter(x => x !== self && x.start >= from - 0.002);
-  if (!moving.length) return Infinity;
-  const first = Math.min(...moving.map(x => x.start)), wall = stay.reduce((m, x) => Math.max(m, clipEnd(x)), 0);
-  return Math.max(0, first - wall);
-}
 
 let drag = null;
 function applyDrag(c, dt, e) {
@@ -1821,29 +1977,32 @@ function applyDrag(c, dt, e) {
       if (s != null) { dt = s - c.start; c.start = s; c.track = k; }
       word = `Move to V${c.track}`; break;
     }
-    case 'trim':
+    // Edge trims move source in/out by dt * speed, since timeline time runs at the clip's speed.
+    case 'trim': {
+      const sp = spd(c);
       if (drag.edge === 'l') {
         trySnap([c.start]);
-        dt = clamp(dt, Math.max(-c.in, (prev ? clipEnd(prev) : 0) - c.start), len - MIN_CLIP);
-        c.start += dt; c.in += dt; show = c.start;
+        dt = clamp(dt, Math.max(-c.in / sp, (prev ? clipEnd(prev) : 0) - c.start), len - MIN_CLIP);
+        c.start += dt; c.in += dt * sp; show = c.start;
       } else {
         trySnap([end]);
-        dt = clamp(dt, MIN_CLIP - len, Math.min(md - c.out, next ? next.start - end : Infinity));
-        c.out += dt; show = clipEnd(c) - 1 / TC_FPS;
+        dt = clamp(dt, MIN_CLIP - len, Math.min((md - c.out) / sp, next ? next.start - end : Infinity));
+        c.out += dt * sp; show = clipEnd(c) - 1 / TC_FPS;
       }
       word = 'Trim'; break;
+    }
     case 'ripple': {
       // Ripple on V1 moves later material on every track; on V2 only V2.
-      const tracks = rippleTracks(c.track);
+      const sp = spd(c), tracks = rippleTracks(c.track);
       const after = S.clips.filter(x => x !== c && tracks.includes(x.track) && x.start >= end - 0.002);
       const room = Math.min(...tracks.filter(k => k !== c.track).map(k => shiftRoom(k, end, c)), Infinity);
       if (drag.edge === 'l') {
-        dt = clamp(dt, -c.in, Math.min(len - MIN_CLIP, room));
-        c.in += dt; after.forEach(x => { x.start -= dt; }); show = c.start;
+        dt = clamp(dt, -c.in / sp, Math.min(len - MIN_CLIP, room));
+        c.in += dt * sp; after.forEach(x => { x.start -= dt; }); show = c.start;
       } else {
         trySnap([end]);
-        dt = clamp(dt, Math.max(MIN_CLIP - len, -room), md - c.out);
-        c.out += dt; after.forEach(x => { x.start += dt; }); show = clipEnd(c) - 1 / TC_FPS;
+        dt = clamp(dt, Math.max(MIN_CLIP - len, -room), (md - c.out) / sp);
+        c.out += dt * sp; after.forEach(x => { x.start += dt; }); show = clipEnd(c) - 1 / TC_FPS;
       }
       word = 'Ripple trim'; break;
     }
@@ -1851,23 +2010,33 @@ function applyDrag(c, dt, e) {
       const A = drag.edge === 'l' ? prev : c, B = drag.edge === 'l' ? c : next;
       if (!A || !B) break;
       trySnap([B.start]);
-      dt = clamp(dt, Math.max(MIN_CLIP - clipLen(A), -B.in), Math.min(srcDur(A) - A.out, clipLen(B) - MIN_CLIP));
-      A.out += dt; B.in += dt; B.start += dt; show = B.start; word = 'Roll'; break;
+      dt = clamp(dt, Math.max(MIN_CLIP - clipLen(A), -B.in / spd(B)), Math.min((srcDur(A) - A.out) / spd(A), clipLen(B) - MIN_CLIP));
+      A.out += dt * spd(A); B.in += dt * spd(B); B.start += dt; show = B.start; word = 'Roll'; break;
     }
-    case 'slip':
-      dt = clamp(dt, c.out - md, c.in);
-      c.in -= dt; c.out -= dt; show = c.start; word = 'Slip'; break;
+    case 'slip': {
+      const sp = spd(c);
+      dt = clamp(dt, (c.out - md) / sp, c.in / sp);
+      c.in -= dt * sp; c.out -= dt * sp; show = c.start; word = 'Slip'; break;
+    }
     case 'slide': {
       const tp = touching(prev, c), tn = touching(c, next);
       trySnap([c.start, end]);
       let lo = tp ? MIN_CLIP - clipLen(prev) : (prev ? clipEnd(prev) : 0) - c.start;
       let hi = tn ? clipLen(next) - MIN_CLIP : next ? next.start - end : Infinity;
-      if (tp) hi = Math.min(hi, srcDur(prev) - prev.out);
-      if (tn) lo = Math.max(lo, -next.in);
+      if (tp) hi = Math.min(hi, (srcDur(prev) - prev.out) / spd(prev));
+      if (tn) lo = Math.max(lo, -next.in / spd(next));
       dt = clamp(dt, lo, hi);
-      if (tp) prev.out += dt;
-      if (tn) { next.in += dt; next.start += dt; }
+      if (tp) prev.out += dt * spd(prev);
+      if (tn) { next.in += dt * spd(next); next.start += dt; }
       c.start += dt; show = c.start; word = 'Slide'; break;
+    }
+    // Fade handles in the top corners of a clip.
+    case 'fade': {
+      const key = drag.edge === 'l' ? 'fadeIn' : 'fadeOut', o = c[key] || 0;
+      const v = clamp(o + (drag.edge === 'l' ? dt : -dt), 0, len / 2);
+      if (v < 1 / TC_FPS) delete c[key]; else c[key] = qf(v);
+      dt = (c[key] || 0) - o; word = drag.edge === 'l' ? `Fade in ${(c[key] || 0).toFixed(2)}s ·` : `Fade out ${(c[key] || 0).toFixed(2)}s ·`;
+      break;
     }
   }
   return { show, snapAt, label: `${word} ${fmtDelta(dt)}` };
@@ -1893,9 +2062,11 @@ function onClipDown(e) {
   else if (!S.selClips.includes(c.id)) S.selClips = [c.id];
   S.sel = null; S.selGap = null;
   if (multi) { renderTimeline(); renderEditor(); renderList(); return; }
-  const edge = e.target.dataset.edge || null, { prev, next } = neighbors(c);
+  const fadeEdge = e.target.dataset.fade || null;
+  const edge = fadeEdge || e.target.dataset.edge || null, { prev, next } = neighbors(c);
   let mode;
-  if (S.tool === 'trim') mode = edge ? 'ripple' : e.altKey ? 'slide' : 'slip';
+  if (fadeEdge) mode = 'fade';
+  else if (S.tool === 'trim') mode = edge ? 'ripple' : e.altKey ? 'slide' : 'slip';
   else if (edge) mode = !e.altKey && (edge === 'l' ? touching(prev, c) : touching(c, next)) ? 'roll' : 'trim';
   else mode = 'move';
   pause();
@@ -2025,6 +2196,7 @@ document.addEventListener('keydown', e => {
     if (k === 'z') e.shiftKey ? redo() : undo();
     else if (k === 'y') redo();
     else if (k === 'b' || k === '\\') bladeAtPlayhead();
+    else if (k === 't') addDissolve(1);
     else if (k === '=' || k === '+') zoom(1.5);
     else if (k === '-' || k === '_') zoom(1 / 1.5);
     else if (k === 'a') { S.selClips = S.clips.map(c => c.id); S.sel = null; S.selGap = null; renderTimeline(); renderEditor(); }
@@ -2074,6 +2246,12 @@ document.addEventListener('keydown', e => {
    Files go into the media pool. The first file of a new project goes straight onto V1.
    A file whose name matches an offline pool item relinks it. */
 function probeMedia(file) {
+  if (file.type.startsWith('image/')) return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => resolve({ url, kind: 'image', duration: IMG_LEN, w: im.naturalWidth, h: im.naturalHeight });
+    im.onerror = () => { URL.revokeObjectURL(url); reject(new Error('unsupported')); };
+    im.src = url;
+  });
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file), el = document.createElement('video');
     el.preload = 'metadata'; el.muted = true;
@@ -2106,12 +2284,12 @@ async function importFiles(files) {
     } else {
       med = { id: uid(), name: file.name, kind: info.kind, duration: info.duration, w: info.w, h: info.h, file, url: info.url };
       S.pool.push(med);
-      if (autoPlace) S.clips.push(newClip(med.id, 1, trackEnd(1), 0, med.duration));
+      if (autoPlace) placeMedia('append', med.id, 0, 1);
       added++;
     }
     S.poolSel = med.id;
     const id = med.id;
-    computePeaks(file).then(p => { if (MEDIA(id) && p) { PEAKS.set(id, p); renderTimeline(); } });
+    if (med.kind !== 'image') computePeaks(file).then(p => { if (MEDIA(id) && p) { PEAKS.set(id, p); renderTimeline(); } });
   }
   if (!$('#projName').dataset.touched && S.pool.length && added === files.length && S.name === 'Demo project') {
     S.name = S.pool[0].name.replace(/\.[^.]+$/, ''); $('#projName').value = S.name;
@@ -2202,6 +2380,7 @@ async function transcribe() {
   const med = MEDIA(S.poolSel) || mainMedia();
   if (!med) { toast('Import a video first.'); return; }
   if (med.kind === 'demo') { toast('The demo clip already has captions. Import your own video to transcribe it.'); return; }
+  if (med.kind === 'image') { toast('Pick a video or audio file in the media pool to transcribe.'); return; }
   if (!med.file) { toast(`"${med.name}" is offline. Import it again to relink it first.`); return; }
   asrBusy = true; $('#transcribeBtn').disabled = true; $('#asrBar').style.width = '0%';
   const files = {};
@@ -2313,22 +2492,29 @@ const MIMES = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1'
 const pickMime = () => window.MediaRecorder ? MIMES.find(m => { try { return MediaRecorder.isTypeSupported(m); } catch (e) { return false; } }) : null;
 function renderOutChips() {
   const { W, H } = outDims(), mime = pickMime();
-  const fmt = !mime ? 'Recording not supported' : mime.startsWith('video/mp4') ? 'MP4 · H.264' : 'WebM · VP9/VP8';
+  const fast = S.out.engine !== 'live' && 'VideoEncoder' in window;
+  const fmt = fast ? 'Fast export · WebCodecs' : !mime ? 'Recording not supported' : mime.startsWith('video/mp4') ? 'MP4 · H.264' : 'WebM · VP9/VP8';
   $('#outChips').innerHTML = `<span class="chip on">${W}×${H}</span><span class="chip">${S.out.fps} fps</span><span class="chip">${fmt}</span>`;
   $$('#aspectSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.out.aspect)));
-  $('#fit').value = S.out.fit; $('#quality').value = String(S.out.quality); $('#fps').value = String(S.out.fps);
+  $('#fit').value = S.out.fit; $('#quality').value = String(S.out.quality); $('#fps').value = String(S.out.fps); $('#engine').value = S.out.engine || 'fast';
 }
 $$('#aspectSeg button').forEach(b => b.addEventListener('click', () => { S.out.aspect = b.dataset.v; savePrefs(); sizePreview(); renderOutChips(); }));
 $('#fit').addEventListener('change', e => { S.out.fit = e.target.value; savePrefs(); });
 $('#quality').addEventListener('change', e => { S.out.quality = Number(e.target.value); savePrefs(); renderOutChips(); });
 $('#fps').addEventListener('change', e => { S.out.fps = Number(e.target.value); savePrefs(); renderOutChips(); });
+$('#engine').addEventListener('change', e => { S.out.engine = e.target.value; savePrefs(); renderOutChips(); });
 
-let EXP = null;
+let EXP = null, FAST = null;
 async function startRender() {
   if (!S.clips.length) { toast('There is nothing on the timeline to render.'); return; }
   const useRange = $('#renderRange').checked && (S.mark.in != null || S.mark.out != null);
   const r0 = useRange ? (S.mark.in ?? 0) : 0, r1 = useRange ? (S.mark.out ?? tlEnd()) : tlEnd();
   if (r1 - r0 < 0.1) { setStatus('#renderStatus', 'The range to render is empty.', 'err'); return; }
+  if (FAST || EXP) return;
+  if (S.out.engine !== 'live') {
+    if (await fastRender(r0, r1) === 'done') return;
+    toast("Fast export isn't available in this browser, so this render records in real time.");
+  }
   const mime = pickMime();
   if (!mime || !HTMLCanvasElement.prototype.captureStream) { setStatus('#renderStatus', "This browser can't record canvas video. Try Chrome, Edge, or Safari 18+.", 'err'); return; }
   pause();
@@ -2364,18 +2550,180 @@ function onRenderStop() {
   $('#renderBtn').disabled = false; $('#cancelBtn').hidden = true;
   if (!e || e.cancelled) { setStatus('#renderStatus', 'Render cancelled.', ''); $('#renderBar').style.width = '0%'; return; }
   const blob = new Blob(e.parts, { type: e.mime.split(';')[0] });
-  const ext = e.mime.startsWith('video/mp4') ? 'mp4' : 'webm';
+  showResult(blob, e.mime.startsWith('video/mp4') ? 'mp4' : 'webm', e.W, e.H, 'real time');
+}
+/* ---------------- 7b. Fast export (WebCodecs) ----------------
+   Renders frame by frame instead of recording in real time: every frame seeks the
+   players to the exact source time, so cuts and dissolves are frame-accurate, and
+   it runs as fast as the browser can decode and encode. Sound is mixed offline with
+   the same volumes, fades and dissolves. The muxers load from the CDN on first use. */
+const MUXERS = { mp4: 'https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.2/+esm', webm: 'https://cdn.jsdelivr.net/npm/webm-muxer@5.1.4/+esm' };
+const AUDIO_RATE = 48000;
+async function pickVideoCodec(W, H, fps, bitrate) {
+  const tries = [
+    { box: 'mp4', codec: 'avc1.640034', mux: 'avc' },
+    { box: 'mp4', codec: 'avc1.4d0034', mux: 'avc' },
+    { box: 'mp4', codec: 'avc1.42003e', mux: 'avc' },
+    { box: 'webm', codec: 'vp09.00.41.08', mux: 'V_VP9' },
+    { box: 'webm', codec: 'vp8', mux: 'V_VP8' },
+  ];
+  for (const t of tries) {
+    const config = { codec: t.codec, width: W, height: H, bitrate, framerate: fps };
+    if (t.mux === 'avc') config.avc = { format: 'avc' };
+    try { const r = await VideoEncoder.isConfigSupported(config); if (r.supported) return Object.assign({ config: r.config }, t); } catch (e) { /* try the next one */ }
+  }
+  return null;
+}
+async function pickAudioCodec(box) {
+  if (!('AudioEncoder' in window)) return null;
+  const tries = box === 'mp4' ? [['mp4a.40.2', 'aac'], ['opus', 'opus']] : [['opus', 'A_OPUS']];
+  for (const [codec, mux] of tries) {
+    const config = { codec, sampleRate: AUDIO_RATE, numberOfChannels: 2, bitrate: 160000 };
+    try { const r = await AudioEncoder.isConfigSupported(config); if (r.supported) return { config: r.config, mux }; } catch (e) { /* next */ }
+  }
+  return null;
+}
+const AUDIO48 = new Map();   // media url -> decoded AudioBuffer at 48 kHz
+async function audioOf(med) {
+  if (AUDIO48.has(med.url)) return AUDIO48.get(med.url);
+  let buf = null;
+  try { buf = await new OfflineAudioContext(2, 1, AUDIO_RATE).decodeAudioData(await med.file.arrayBuffer()); } catch (e) { buf = null; }
+  AUDIO48.set(med.url, buf);
+  return buf;
+}
+// Sound level of clip c at timeline time t: volume x fades x dissolve (matches the preview).
+function gainAt(c, t) {
+  let g = (c.vol ?? 1) * fadeMult(c, t);
+  const dIn = xdur(c);
+  if (dIn && t < c.start + dIn / 2) g *= clamp((t - (c.start - dIn / 2)) / dIn, 0, 1);
+  const n = nextTouching(c), dOut = xdur(n);
+  if (dOut && t > n.start - dOut / 2) g *= clamp(1 - (t - (n.start - dOut / 2)) / dOut, 0, 1);
+  return g;
+}
+async function mixAudio(r0, r1) {
+  const oac = new OfflineAudioContext(2, Math.max(1, Math.ceil((r1 - r0) * AUDIO_RATE)), AUDIO_RATE);
+  let any = false;
+  for (const c of S.clips) {
+    const med = MEDIA(c.m);
+    if (!isLive(med) || !med.file || S.tracks[c.track].mute) continue;
+    const dIn = xdur(c), dOut = xdur(nextTouching(c));
+    const a = Math.max(r0, c.start - dIn / 2), b = Math.min(r1, clipEnd(c) + dOut / 2);
+    if (b - a < 0.01) continue;
+    const buf = await audioOf(med);
+    const off = srcAt(c, a);
+    if (!buf || off >= buf.duration) continue;
+    const src = oac.createBufferSource(), g = oac.createGain();
+    src.buffer = buf; src.playbackRate.value = spd(c);
+    const steps = Math.max(2, Math.ceil((b - a) * 100)), curve = new Float32Array(steps);
+    for (let i = 0; i < steps; i++) curve[i] = gainAt(c, a + (b - a) * i / (steps - 1));
+    g.gain.setValueCurveAtTime(curve, a - r0, b - a);
+    src.connect(g); g.connect(oac.destination);
+    src.start(a - r0, Math.max(0, off), (b - a) * spd(c));
+    any = true;
+  }
+  return any ? oac.startRendering() : null;
+}
+// Put every player needed for time t on the exact frame, and wait for the frames to decode.
+async function seekForFrame(t) {
+  const waits = [];
+  for (const k of TRACKS) for (const L of layersAt(t, k)) {
+    if (!isLive(MEDIA(L.c.m))) continue;
+    const el = playerFor(L.c.m, k, L.slot).el;
+    if (!el.paused) el.pause();
+    if (el.readyState < 2 || Math.abs(el.currentTime - L.src) > 0.001) {
+      waits.push(new Promise(r => { el.addEventListener('seeked', r, { once: true }); setTimeout(r, 4000); }));
+      el.currentTime = L.src;
+    }
+  }
+  if (waits.length) await Promise.all(waits);
+}
+function showResult(blob, ext, W, H, note) {
   const name = `${(S.name || 'wordcut').replace(/[^\w\- ]+/g, '').trim() || 'wordcut'}-captioned.${ext}`;
   const url = URL.createObjectURL(blob);
   $('#renderBar').style.width = '100%';
-  setStatus('#renderStatus', `Rendered ${(blob.size / 1048576).toFixed(1)} MB · ${e.W}×${e.H} ${ext.toUpperCase()}`, 'ok');
+  setStatus('#renderStatus', `Rendered ${(blob.size / 1048576).toFixed(1)} MB · ${W}×${H} ${ext.toUpperCase()}${note ? ' · ' + note : ''}`, 'ok');
   const r = $('#result');
   r.hidden = false;
   r.innerHTML = `<video controls playsinline src="${url}"></video><div class="row" style="margin-top:10px"><button class="btn primary" id="dlBtn">Save video</button></div>`;
   $('#dlBtn').addEventListener('click', () => download(blob, name));
 }
+// Returns 'fallback' when this browser can't do it, so the caller can record in real time instead.
+async function fastRender(r0, r1) {
+  if (!('VideoEncoder' in window) || !('VideoFrame' in window)) return 'fallback';
+  const { W, H } = outDims(), fps = S.out.fps, bitrate = W * H >= 1920 * 1080 ? 12e6 : 6e6;
+  setStatus('#renderStatus', 'Preparing the encoder…', '');
+  const vc = await pickVideoCodec(W, H, fps, bitrate);
+  if (!vc) return 'fallback';
+  let lib;
+  try { lib = await import(MUXERS[vc.box]); } catch (e) { return 'fallback'; }
+  const ac = hasLiveMedia() ? await pickAudioCodec(vc.box) : null;
+  pause();
+  FAST = { cancelled: false };
+  $('#result').hidden = true;
+  $('#renderBtn').disabled = true; $('#cancelBtn').hidden = false;
+  let venc = null, aenc = null;
+  try {
+    setStatus('#renderStatus', 'Mixing sound…', '');
+    const mixed = ac ? await mixAudio(r0, r1) : null;
+    const target = new lib.ArrayBufferTarget();
+    const opts = { target, video: { codec: vc.mux, width: W, height: H, frameRate: fps }, firstTimestampBehavior: 'offset' };
+    if (vc.box === 'mp4') opts.fastStart = 'in-memory';
+    if (mixed) opts.audio = { codec: ac.mux, numberOfChannels: 2, sampleRate: AUDIO_RATE };
+    const muxer = new lib.Muxer(opts);
+    let err = null;
+    // Sound first (it is quick), then picture.
+    if (mixed) {
+      aenc = new AudioEncoder({ output: (ch, meta) => muxer.addAudioChunk(ch, meta), error: e => { err = e; } });
+      aenc.configure(ac.config);
+      const block = 4800;
+      for (let off = 0; off < mixed.length && !err; off += block) {
+        const nf = Math.min(block, mixed.length - off), data = new Float32Array(nf * 2);
+        for (let ch = 0; ch < 2; ch++) data.set(mixed.getChannelData(ch).subarray(off, off + nf), ch * nf);
+        const ad = new AudioData({ format: 'f32-planar', sampleRate: AUDIO_RATE, numberOfFrames: nf, numberOfChannels: 2, timestamp: Math.round(off / AUDIO_RATE * 1e6), data });
+        aenc.encode(ad); ad.close();
+      }
+      await aenc.flush();
+    }
+    venc = new VideoEncoder({ output: (ch, meta) => muxer.addVideoChunk(ch, meta), error: e => { err = e; } });
+    venc.configure(vc.config);
+    const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    await (document.fonts ? document.fonts.load(fontStr(S.style, 40)).catch(() => {}) : null);
+    const n = Math.max(1, Math.round((r1 - r0) * fps)), t0 = performance.now();
+    for (let i = 0; i < n && !FAST.cancelled && !err; i++) {
+      const t = r0 + i / fps;
+      clock.t = t;
+      await seekForFrame(t);
+      drawFrame(ctx, W, H, t);
+      const frame = new VideoFrame(canvas, { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) });
+      venc.encode(frame, { keyFrame: i % (fps * 2) === 0 });
+      frame.close();
+      while (venc.encodeQueueSize > 6) await new Promise(r => setTimeout(r, 2));
+      if (i % 3 === 0 || i === n - 1) {
+        const x = ((i + 1) / fps) / ((performance.now() - t0) / 1000);
+        $('#renderBar').style.width = ((i + 1) / n * 100).toFixed(1) + '%';
+        setStatus('#renderStatus', `Rendering frame ${i + 1} of ${n} · ${x.toFixed(1)}× real time`, '');
+      }
+    }
+    if (err) throw err;
+    if (FAST.cancelled) { setStatus('#renderStatus', 'Render cancelled.', ''); $('#renderBar').style.width = '0%'; return 'done'; }
+    await venc.flush();
+    muxer.finalize();
+    const secs = (performance.now() - t0) / 1000;
+    showResult(new Blob([target.buffer], { type: vc.box === 'mp4' ? 'video/mp4' : 'video/webm' }), vc.box, W, H, `took ${secs.toFixed(1)} s`);
+  } catch (e) {
+    setStatus('#renderStatus', `Export failed: ${(e && e.message) || e}. Try "Real time" export instead.`, 'err');
+  } finally {
+    try { venc && venc.state !== 'closed' && venc.close(); } catch (e) { /* already closed */ }
+    try { aenc && aenc.state !== 'closed' && aenc.close(); } catch (e) { /* already closed */ }
+    FAST = null;
+    $('#renderBtn').disabled = false; $('#cancelBtn').hidden = true;
+  }
+  return 'done';
+}
+
 $('#renderBtn').addEventListener('click', startRender);
-$('#cancelBtn').addEventListener('click', () => { if (EXP) { EXP.cancelled = true; finishRender(); } });
+$('#cancelBtn').addEventListener('click', () => { if (FAST) FAST.cancelled = true; if (EXP) { EXP.cancelled = true; finishRender(); } });
 
 function download(blob, name) {
   const a = document.createElement('a');
