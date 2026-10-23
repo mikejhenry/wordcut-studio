@@ -18,9 +18,9 @@ python3 -m http.server 8080
 py -m http.server 8080
 ```
 
-On Windows, `python3` usually opens a Microsoft Store shortcut instead of Python, so use `py`. If Python isn't installed but Node.js is, `npx http-server -p 8080` works too.
+On Windows, `python3` usually opens a Microsoft Store shortcut instead of Python, so use `py`. If Python isn't installed but Node.js is, `npx http-server -p 8080 -c-1` works too (`-c-1` turns off its one-hour cache, so you always see the latest files).
 
-Then open http://localhost:8080 in Chrome, Edge, or Safari 18+. Press Ctrl+C in the terminal to stop the server.
+Then open http://localhost:8080 in Chrome, Edge, or Safari 18+. Press Ctrl+C in the terminal to stop the server. After pulling new changes, reload with Ctrl+Shift+R (Cmd+Shift+R on a Mac) so the browser doesn't show a cached copy.
 
 Use Chrome or Edge for WebGPU acceleration. Without WebGPU it falls back to the CPU (slower, still works).
 
